@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Classroom Tools</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='2' y='2' width='12' height='12' rx='3'/%3E%3Crect x='18' y='2' width='12' height='12' rx='3'/%3E%3Crect x='2' y='18' width='12' height='12' rx='3'/%3E%3Crect x='18' y='18' width='12' height='12' rx='3'/%3E%3C/svg%3E">
+<style>
+  :root {
+    --font: 'Century Gothic', 'CenturyGothic', AppleGothic, 'Gill Sans', 'Trebuchet MS', sans-serif;
+    --ink: #111; --sub: #5a5a5a; --hair: #dcdcdc; --fill: #f4f4f4; --bg: #fff;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--font); }
+  a { color: inherit; }
+  a:focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }
+
+  main { max-width: 1040px; margin: 0 auto; padding: 48px 24px 40px; }
+  header { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 30px; }
+  h1 { margin: 0; font-size: clamp(30px, 4vw, 42px); letter-spacing: -.01em; }
+  .lead { margin: 8px 0 0; color: var(--sub); font-size: 17px; }
+  .today { color: var(--sub); font-size: 15px; }
+
+  #grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 16px; }
+  .tile {
+    display: flex; flex-direction: column; gap: 12px; min-height: 210px; padding: 22px 20px 18px;
+    border: 1.5px solid var(--hair); border-radius: 18px; text-decoration: none; background: #fff;
+    transition: border-color .15s, transform .15s, box-shadow .15s;
+  }
+  .tile:hover { border-color: var(--ink); transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,.08); }
+  .ic { width: 52px; height: 52px; border-radius: 14px; background: var(--ink); color: #fff; display: grid; place-items: center; flex: none;
+    -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .ic svg { width: 28px; height: 28px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  .tile h2 { margin: 2px 0 0; font-size: 20px; }
+  .tile p { margin: 0; color: var(--sub); font-size: 15px; line-height: 1.4; flex: 1; }
+  .meta { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 13px; color: var(--sub); border-top: 1px solid var(--hair); padding-top: 12px; }
+  .go { font-weight: bold; color: var(--ink); font-size: 15px; white-space: nowrap; }
+
+  footer { margin-top: 36px; padding-top: 18px; border-top: 1px solid var(--hair); color: var(--sub); font-size: 14px; line-height: 1.5; }
+
+  @media (max-width: 520px) { main { padding: 28px 16px; } }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <div>
+      <h1>Classroom Tools</h1>
+      <p class="lead">Every tool in one place, on any computer. Bookmark this page.</p>
+    </div>
+    <div class="today" id="today"></div>
+  </header>
+
+  <div id="grid"></div>
+
+  <footer>
+    Each tool opens in its own tab. Tools that remember things, such as name lists, keep them in this browser on this computer.
+    BowerPresent also syncs through your Google Drive.
+  </footer>
+</main>
+
+<script>
+/*
+  THE TOOL LIST
+  To add a tool, upload its HTML file next to this page, then copy one block below and change it.
+    name     what shows on the tile
+    about    one short line saying what it does
+    href     the file name you uploaded, or a full web address for a tool hosted somewhere else
+    updated  when you last uploaded a new copy, so you always know you have the newest one
+    icon     one of: slides, camera, test, rubric, diary, tool
+*/
+var TOOLS = [
+  { name: 'BowerPresent', about: 'Your slides with the name picker, timer, points and whiteboard beside them.',
+    href: 'bowerpresent.html', updated: '4 Nov 2026', icon: 'slides' },
+  { name: 'Visualiser Studio', about: 'The document camera full screen, with drawing, sticky notes, snapshots and compare.',
+    href: 'visualiser.html', updated: '4 Nov 2026', icon: 'camera' },
+  { name: 'Maths Assessment Printer', about: 'Pre and post maths assessments, printed with each student’s name.',
+    href: 'maths-printer.html', updated: '4 Nov 2026', icon: 'test' },
+  { name: 'Rubric Marker', about: 'Build or load a rubric, mark each student, then download PDF feedback or a marks spreadsheet.',
+    href: 'rubric-marker.html', updated: '4 Nov 2026', icon: 'rubric' },
+  { name: 'Teaching Diary', about: 'Note how each lesson went, ready for writing up programs at the end of term.',
+    href: 'https://bit.ly/gvpsdiary', updated: 'Google Apps Script', icon: 'diary' }
+];
+
+var ICONS = {
+  slides: '<rect x="3" y="4" width="18" height="12" rx="1.5"/><path d="M12 16v4M8 20h8"/>',
+  camera: '<path d="M3 8h4l2-3h6l2 3h4v11H3z"/><circle cx="12" cy="13" r="4"/>',
+  test: '<path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 12h7M9 16h5"/>',
+  diary: '<path d="M5 4h11a3 3 0 013 3v13H8a3 3 0 01-3-3z"/><path d="M5 17a3 3 0 013-3h11M9 8h6"/>',
+  rubric: '<rect x="3" y="4" width="18" height="16" rx="1.5"/><path d="M3 9h18M3 14h18M9 4v16M15 4v16"/>',
+  tool: '<rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/>'
+};
+
+(function () {
+  var grid = document.getElementById('grid');
+  TOOLS.forEach(function (t) {
+    var a = document.createElement('a');
+    a.className = 'tile'; a.href = t.href; a.target = '_blank'; a.rel = 'noopener';
+    var ic = document.createElement('span'); ic.className = 'ic';
+    ic.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true">' + (ICONS[t.icon] || ICONS.tool) + '</svg>';
+    var h = document.createElement('h2'); h.textContent = t.name;
+    var p = document.createElement('p'); p.textContent = t.about;
+    var m = document.createElement('div'); m.className = 'meta';
+    var u = document.createElement('span');
+    u.textContent = /^https?:/.test(t.href) ? t.updated : 'Updated ' + t.updated;
+    var g = document.createElement('span'); g.className = 'go'; g.textContent = 'Open →';
+    m.appendChild(u); m.appendChild(g);
+    a.appendChild(ic); a.appendChild(h); a.appendChild(p); a.appendChild(m);
+    grid.appendChild(a);
+  });
+  document.getElementById('today').textContent = new Date().toLocaleDateString('en-AU', { weekday: 'long', day: 'numeric', month: 'long' });
+})();
+</script>
+</body>
+</html>

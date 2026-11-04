@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta name="robots" content="noindex, nofollow">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<title>Visualiser Studio</title>
+<style>
+  :root {
+    --bar: #111;
+    --line: #3a3a3a;
+    --fg: #fff;
+    --font: 'Century Gothic', 'CenturyGothic', AppleGothic, 'Gill Sans', 'Trebuchet MS', sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; height: 100%; overflow: hidden; background: #000; color: var(--fg);
+    font-family: var(--font); user-select: none; -webkit-user-select: none;
+    touch-action: none; overscroll-behavior: none;
+  }
+  button { font-family: var(--font); }
+
+  /* ---------- Stage ---------- */
+  #stage { position: fixed; inset: 0; background: #000; }
+  #snapView { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
+  #video { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: contain; transform-origin: center center; }
+  #compareView { position: absolute; inset: 0; display: none; gap: 8px; background: #000; }
+  #compareView .half { flex: 1; position: relative; min-width: 0; }
+  #compareView img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
+  #compareView.stacked { flex-direction: column; }
+  #compareView .cap {
+    position: absolute; left: 50%; top: 10px; transform: translateX(-50%);
+    background: rgba(0,0,0,.7); padding: 6px 14px; border-radius: 8px; font-size: 18px; font-weight: bold;
+  }
+  #stage[data-mode="live"] #snapView { display: none; }
+  #stage[data-mode="snap"] #video { visibility: hidden; }
+  #stage[data-mode="compare"] #video, #stage[data-mode="compare"] #snapView { visibility: hidden; }
+  #stage[data-mode="compare"] #compareView { display: flex; }
+  #stage[data-mode="live"] #snapView, #stage[data-mode="compare"] #snapView { display: none; }
+
+  canvas { position: absolute; inset: 0; width: 100%; height: 100%; touch-action: none; }
+  #ink { cursor: crosshair; }
+  #temp { pointer-events: none; opacity: .35; }
+  body.tool-hand #ink { pointer-events: none; }
+  #notes { position: absolute; inset: 0; pointer-events: none; }
+
+  /* ---------- Sticky notes ---------- */
+  .note {
+    position: absolute; pointer-events: auto; display: flex; flex-direction: column;
+    color: #111; border-radius: 6px; box-shadow: 0 6px 18px rgba(0,0,0,.45);
+    min-width: 160px; min-height: 120px;
+  }
+  .note-bar {
+    height: 44px; flex: none; display: flex; align-items: center; gap: 2px; padding: 0 4px 0 10px;
+    background: rgba(0,0,0,.08); border-radius: 6px 6px 0 0; cursor: grab; touch-action: none;
+  }
+  .note-bar .grip { flex: 1; height: 100%; }
+  .note-bar button {
+    width: 40px; height: 36px; border: 0; background: transparent; color: #111;
+    font-size: 18px; font-weight: bold; border-radius: 6px; cursor: pointer;
+  }
+  .note-bar button:active { background: rgba(0,0,0,.12); }
+  .note-text {
+    flex: 1; padding: 10px 14px; outline: none; overflow: auto; line-height: 1.25;
+    user-select: text; -webkit-user-select: text; touch-action: auto; white-space: pre-wrap; word-wrap: break-word;
+  }
+  .note-text:empty::before { content: 'Type here'; color: rgba(0,0,0,.35); }
+  .note-resize {
+    position: absolute; right: 0; bottom: 0; width: 34px; height: 34px; cursor: nwse-resize; touch-action: none;
+    background: linear-gradient(135deg, transparent 55%, rgba(0,0,0,.3) 55%, rgba(0,0,0,.3) 62%, transparent 62%, transparent 72%, rgba(0,0,0,.3) 72%, rgba(0,0,0,.3) 79%, transparent 79%);
+    border-radius: 0 0 6px 0;
+  }
+
+  /* ---------- Toolbar ---------- */
+  /* left/right 0 with auto margins, not left:50% + translate — a fixed element at
+     left:50% is shrink-to-fit inside the remaining half-width, which wrapped the bar. */
+  #toolbar {
+    position: fixed; left: 0; right: 0; bottom: 16px; z-index: 20;
+    width: max-content; margin: 0 auto;
+    display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 4px;
+    background: var(--bar); border: 1px solid var(--line); border-radius: 18px; padding: 8px;
+    max-width: calc(100vw - 32px); box-shadow: 0 8px 28px rgba(0,0,0,.5);
+  }
+  #toolbar.hidden { display: none; }
+  .btn {
+    position: relative; width: 56px; height: 56px; border: 0; border-radius: 12px;
+    background: transparent; color: var(--fg); display: grid; place-items: center; cursor: pointer;
+  }
+  .btn svg { width: 28px; height: 28px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .btn:active { background: #2a2a2a; }
+  .btn.active { background: #fff; color: #000; }
+  .btn:disabled { opacity: .3; cursor: default; }
+  .btn.confirm { background: #fff; color: #000; font-size: 13px; font-weight: bold; line-height: 1.1; }
+  .sep { width: 1px; height: 40px; background: var(--line); margin: 0 6px; }
+  .swatch { width: 44px; height: 44px; border-radius: 50%; border: 3px solid #555; cursor: pointer; padding: 0; margin: 0 2px; }
+  .swatch.active { border-color: #fff; box-shadow: 0 0 0 3px #000, 0 0 0 5px #fff; }
+  .size { width: 48px; height: 56px; border: 0; background: transparent; border-radius: 12px; display: grid; place-items: center; cursor: pointer; }
+  .size span { display: block; background: #fff; border-radius: 50%; }
+  .size.active { background: #fff; }
+  .size.active span { background: #000; }
+  .badge {
+    position: absolute; top: 4px; right: 4px; min-width: 20px; height: 20px; padding: 0 5px; border-radius: 10px;
+    background: #fff; color: #000; font-size: 12px; font-weight: bold; line-height: 20px; text-align: center;
+  }
+  .btn.active .badge { background: #000; color: #fff; }
+  #showBar {
+    position: fixed; right: 16px; bottom: 16px; z-index: 20; display: none;
+    width: 56px; height: 56px; border-radius: 50%; border: 1px solid var(--line); background: var(--bar); color: #fff; cursor: pointer;
+  }
+  #showBar svg { width: 28px; height: 28px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
+
+  /* ---------- View pill ---------- */
+  #pill {
+    position: fixed; top: 14px; left: 14px; z-index: 20; display: flex; align-items: center; gap: 10px;
+    background: rgba(0,0,0,.7); border: 1px solid var(--line); border-radius: 12px; padding: 6px 8px 6px 14px; font-size: 18px;
+  }
+  #pill .dot { width: 12px; height: 12px; border-radius: 50%; background: #E53935; }
+  #pill button { border: 0; background: #fff; color: #000; font-weight: bold; font-size: 15px; border-radius: 8px; padding: 8px 12px; cursor: pointer; }
+  body.bar-hidden #pill { display: none; }
+
+  /* ---------- Panels ---------- */
+  .panel {
+    position: fixed; left: 0; right: 0; width: max-content; margin: 0 auto; bottom: 100px; z-index: 30;
+    background: var(--bar); border: 1px solid var(--line); border-radius: 16px; padding: 16px;
+    box-shadow: 0 8px 28px rgba(0,0,0,.6); display: none; max-width: calc(100vw - 32px); overflow-y: auto;
+  }
+  .panel.open { display: block; }
+  .panel h2 { margin: 0; font-size: 20px; }
+  .panel-head { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+  .panel-head .grow { flex: 1; }
+  .pbtn { border: 1px solid #fff; background: transparent; color: #fff; font-size: 16px; font-weight: bold; border-radius: 10px; padding: 10px 16px; cursor: pointer; }
+  .pbtn.solid { background: #fff; color: #000; }
+  .pbtn:disabled { opacity: .3; cursor: default; }
+
+  #tray { width: 1100px; }
+  #thumbs { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 6px; touch-action: pan-x; }
+  .thumb { position: relative; flex: none; width: 200px; height: 130px; border-radius: 10px; overflow: hidden; border: 3px solid #333; cursor: pointer; background: #222; }
+  .thumb.current { border-color: #fff; }
+  .thumb img { width: 100%; height: 100%; object-fit: cover; display: block; pointer-events: none; }
+  .thumb .num { position: absolute; left: 6px; bottom: 6px; background: rgba(0,0,0,.75); border-radius: 6px; padding: 2px 8px; font-size: 15px; font-weight: bold; }
+  .thumb .tb { position: absolute; top: 6px; width: 38px; height: 38px; border-radius: 8px; border: 0; background: rgba(0,0,0,.75); color: #fff; font-size: 14px; font-weight: bold; cursor: pointer; }
+  .thumb .cmp { left: 6px; width: auto; padding: 0 10px; }
+  .thumb .cmp.on { background: #fff; color: #000; }
+  .thumb .del { right: 6px; font-size: 20px; }
+  .empty { color: #bbb; font-size: 17px; padding: 18px 4px; }
+
+  #settings { width: 560px; }
+  .row { margin: 14px 0; }
+  .row label.t { display: block; font-size: 15px; color: #bbb; margin-bottom: 6px; }
+  select { width: 100%; font-family: var(--font); font-size: 17px; padding: 10px; border-radius: 10px; background: #222; color: #fff; border: 1px solid #555; }
+  .seg { display: flex; border: 1px solid #fff; border-radius: 10px; overflow: hidden; }
+  .seg button { flex: 1; border: 0; background: transparent; color: #fff; font-size: 16px; padding: 12px 8px; cursor: pointer; }
+  .seg button.on { background: #fff; color: #000; font-weight: bold; }
+  .check { display: flex; align-items: center; gap: 12px; font-size: 17px; cursor: pointer; padding: 6px 0; }
+  .check input { width: 26px; height: 26px; accent-color: #fff; }
+  .readout { font-size: 15px; color: #bbb; }
+
+  /* ---------- Messages ---------- */
+  #msg {
+    position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 25; display: none;
+    background: #fff; color: #000; border-radius: 16px; padding: 28px 32px; max-width: 560px; text-align: center; font-size: 20px; line-height: 1.4;
+  }
+  #msg.open { display: block; }
+  #msg button { margin-top: 18px; border: 0; background: #000; color: #fff; font-size: 18px; font-weight: bold; border-radius: 10px; padding: 12px 22px; cursor: pointer; }
+  #toast {
+    position: fixed; top: 16px; left: 50%; transform: translateX(-50%); z-index: 40; pointer-events: none;
+    background: #fff; color: #000; font-weight: bold; font-size: 18px; border-radius: 12px; padding: 12px 20px;
+    opacity: 0; transition: opacity .25s;
+  }
+  #toast.show { opacity: 1; }
+  #flash { position: fixed; inset: 0; background: #fff; opacity: 0; pointer-events: none; z-index: 35; }
+  #flash.go { animation: flash .35s ease-out; }
+  @keyframes flash { from { opacity: .7; } to { opacity: 0; } }
+</style>
+</head>
+<body class="tool-pen">
+
+<div id="stage" data-mode="live">
+  <video id="video" autoplay playsinline muted></video>
+  <img id="snapView" alt="">
+  <div id="compareView">
+    <div class="half"><img id="cmpA" alt=""><div class="cap" id="capA"></div></div>
+    <div class="half"><img id="cmpB" alt=""><div class="cap" id="capB"></div></div>
+  </div>
+  <canvas id="ink"></canvas>
+  <canvas id="temp"></canvas>
+  <div id="notes"></div>
+</div>
+
+<div id="pill"><span class="dot" id="pillDot"></span><span id="pillText">Live</span><button id="pillStack" style="display:none">Stack them</button><button id="pillBack" style="display:none">Back to live</button></div>
+
+<div id="toolbar">
+  <button class="btn" data-tool="hand" title="Select (no drawing)" aria-label="Select"><svg viewBox="0 0 24 24"><path d="M5 3l14 8-6 2-2 6z"/></svg></button>
+  <button class="btn" data-tool="pen" title="Pen" aria-label="Pen"><svg viewBox="0 0 24 24"><path d="M4 20l4-1L19 8l-3-3L5 16z"/><path d="M14 7l3 3"/></svg></button>
+  <button class="btn" data-tool="highlighter" title="Highlighter" aria-label="Highlighter"><svg viewBox="0 0 24 24"><path d="M9 14l-5 5h6l2-2"/><path d="M9 14l7-10 4 3-8 10z"/></svg></button>
+  <button class="btn" data-tool="eraser" title="Eraser" aria-label="Eraser"><svg viewBox="0 0 24 24"><path d="M8 20h12"/><path d="M4 15l9-9 6 6-8 8H9z"/><path d="M9 10l6 6"/></svg></button>
+  <div class="sep"></div>
+  <div id="swatches" style="display:flex;align-items:center"></div>
+  <div class="sep"></div>
+  <button class="size" data-size="0" title="Thin" aria-label="Thin"><span style="width:8px;height:8px"></span></button>
+  <button class="size" data-size="1" title="Medium" aria-label="Medium"><span style="width:14px;height:14px"></span></button>
+  <button class="size" data-size="2" title="Thick" aria-label="Thick"><span style="width:22px;height:22px"></span></button>
+  <div class="sep"></div>
+  <button class="btn" id="undoBtn" title="Undo" aria-label="Undo"><svg viewBox="0 0 24 24"><path d="M9 14L4 9l5-5"/><path d="M4 9h10a6 6 0 010 12h-3"/></svg></button>
+  <button class="btn" id="redoBtn" title="Redo" aria-label="Redo"><svg viewBox="0 0 24 24"><path d="M15 14l5-5-5-5"/><path d="M20 9H10a6 6 0 000 12h3"/></svg></button>
+  <button class="btn" id="clearBtn" title="Clear drawing" aria-label="Clear drawing"><svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg></button>
+  <div class="sep"></div>
+  <button class="btn" id="noteBtn" title="Add sticky note" aria-label="Add sticky note"><svg viewBox="0 0 24 24"><path d="M4 4h16v11l-5 5H4z"/><path d="M15 20v-5h5"/></svg></button>
+  <button class="btn" id="captureBtn" title="Take snapshot" aria-label="Take snapshot"><svg viewBox="0 0 24 24"><path d="M3 8h4l2-3h6l2 3h4v11H3z"/><circle cx="12" cy="13" r="4"/></svg></button>
+  <button class="btn" id="trayBtn" title="Snapshots" aria-label="Snapshots"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg><span class="badge" id="badge" style="display:none">0</span></button>
+  <button class="btn" id="liveBtn" title="Back to live camera" aria-label="Live camera"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3" fill="currentColor"/><path d="M6.3 6.3a8 8 0 000 11.4M17.7 6.3a8 8 0 010 11.4"/></svg></button>
+  <button class="btn" id="saveBtn" title="Save this screen as an image" aria-label="Save image"><svg viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5M4 20h16"/></svg></button>
+  <div class="sep"></div>
+  <button class="btn" id="settingsBtn" title="Camera settings" aria-label="Settings"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9L7 7M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/></svg></button>
+  <button class="btn" id="fsBtn" title="Full screen" aria-label="Full screen"><svg viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
+  <button class="btn" id="hideBtn" title="Hide toolbar" aria-label="Hide toolbar"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></button>
+</div>
+<button id="showBar" title="Show toolbar" aria-label="Show toolbar"><svg viewBox="0 0 24 24"><path d="M6 15l6-6 6 6"/></svg></button>
+
+<div class="panel" id="tray">
+  <div class="panel-head">
+    <h2>Snapshots</h2>
+    <span class="readout" id="cmpHint">Choose two with the Compare button</span>
+    <span class="grow"></span>
+    <button class="pbtn solid" id="compareGo" disabled>Show side by side</button>
+    <button class="pbtn" id="trayClose">Close</button>
+  </div>
+  <div id="thumbs"></div>
+</div>
+
+<div class="panel" id="settings">
+  <div class="panel-head"><h2>Camera settings</h2><span class="grow"></span><button class="pbtn" id="settingsClose">Close</button></div>
+  <div class="row"><label class="t" for="camSelect">Camera</label><select id="camSelect"></select></div>
+  <div class="row"><label class="t">Picture quality</label>
+    <div class="seg" id="qualitySeg"><button data-q="max">Highest available</button><button data-q="1080">1080p</button><button data-q="720">720p</button></div>
+  </div>
+  <div class="row"><label class="t">Picture size</label>
+    <div class="seg" id="fitSeg"><button data-fit="contain">Show whole page</button><button data-fit="cover">Fill the screen (crops edges)</button></div>
+  </div>
+  <div class="row"><label class="t">Image direction (use if the visualiser feeds sideways or upside down)</label>
+    <div class="seg" id="rotSeg"><button data-rot="0">Upright</button><button data-rot="90">Turn right</button><button data-rot="180">Upside down</button><button data-rot="270">Turn left</button></div>
+  </div>
+  <div class="row">
+    <label class="check"><input type="checkbox" id="mirror"> Mirror the image left to right</label>
+    <label class="check"><input type="checkbox" id="penOnly"> Pen only (ignore finger and palm touches)</label>
+    <label class="check"><input type="checkbox" id="clearAfter"> Clear the drawing after each snapshot</label>
+  </div>
+  <div class="row" style="display:flex;align-items:center;gap:12px">
+    <span class="readout grow" id="readout" style="flex:1">Waiting for the camera</span>
+    <button class="pbtn" id="restartCam">Restart camera</button>
+  </div>
+</div>
+
+<div id="msg"><div id="msgText"></div><button id="msgRetry">Try again</button></div>
+<div id="toast"></div>
+<div id="flash"></div>
+
+<script>
+(() => {
+  'use strict';
+  const $ = s => document.querySelector(s);
+  const stage = $('#stage'), video = $('#video'), snapImg = $('#snapView');
+  const ink = $('#ink'), temp = $('#temp'), notesLayer = $('#notes');
+  const ctx = ink.getContext('2d'), tctx = temp.getContext('2d');
+  const FONT = "'Century Gothic', 'CenturyGothic', AppleGothic, 'Gill Sans', 'Trebuchet MS', sans-serif";
+
+  // ---------- Settings (persisted) ----------
+  const DEFAULTS = { deviceId: null, fit: 'contain', quality: '1080', rotate: 0, mirror: false, penOnly: false, clearAfter: false };
+  let settings = { ...DEFAULTS };
+  try { Object.assign(settings, JSON.parse(localStorage.getItem('visualiserStudio') || '{}')); } catch (e) {}
+  const saveSettings = () => { try { localStorage.setItem('visualiserStudio', JSON.stringify(settings)); } catch (e) {} };
+
+  // ---------- Tools ----------
+  const COLOURS = ['#000000', '#FFFFFF', '#E53935', '#1E88E5', '#43A047', '#FDD835'];
+  const SIZES = { pen: [3, 7, 14], highlighter: [16, 30, 48], eraser: [18, 42, 90] };
+  const NOTE_COLOURS = ['#FFF176', '#F8BBD0', '#B3E5FC', '#C8E6C9', '#FFFFFF'];
+  const NOTE_SIZES = [20, 28, 36, 48, 64];
+  const tools = { tool: 'pen', colour: { pen: '#E53935', highlighter: '#FDD835' }, size: { pen: 1, highlighter: 1, eraser: 1 } };
+
+  // ---------- Views: live, snapshots, comparisons each keep their own ink and notes ----------
+  const views = {};
+  let current = 'live';
+  const view = (k = current) => views[k] || (views[k] = { strokes: [], undo: [], redo: [], notes: [] });
+  const snaps = [];
+  let snapCounter = 0, noteId = 0, zTop = 10, stacked = false;
+  const cmpSel = [];
+
+  let W = 0, H = 0, dpr = 1;
+  function resize() {
+    dpr = window.devicePixelRatio || 1;
+    W = stage.clientWidth; H = stage.clientHeight;
+    for (const [c, cx] of [[ink, ctx], [temp, tctx]]) {
+      c.width = Math.round(W * dpr); c.height = Math.round(H * dpr);
+      cx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+    applyFit(); render(); renderNotes();
+  }
+
+  // ---------- Drawing ----------
+  function styleFor(c, s, noAlpha) {
+    c.lineCap = 'round'; c.lineJoin = 'round'; c.lineWidth = s.w;
+    if (s.t === 'eraser') { c.globalCompositeOperation = 'destination-out'; c.strokeStyle = '#000'; }
+    else { c.globalCompositeOperation = 'source-over'; c.strokeStyle = s.c; c.globalAlpha = (s.t === 'highlighter' && !noAlpha) ? 0.35 : 1; }
+  }
+  function drawStroke(c, s, noAlpha, w = W, h = H) {
+    const p = s.p;
+    c.save(); styleFor(c, s, noAlpha);
+    c.beginPath(); c.moveTo(p[0] * w, p[1] * h);
+    if (p.length === 2) c.lineTo(p[0] * w + 0.01, p[1] * h);
+    for (let i = 2; i < p.length; i += 2) c.lineTo(p[i] * w, p[i + 1] * h);
+    c.stroke(); c.restore();
+  }
+  function render() {
+    ctx.clearRect(0, 0, W, H);
+    for (const s of view().strokes) drawStroke(ctx, s);
+  }
+
+  let drawing = null;
+  const isInkTool = t => t === 'pen' || t === 'highlighter' || t === 'eraser';
+  ink.addEventListener('pointerdown', e => {
+    if (!isInkTool(tools.tool) || drawing) return;
+    if (settings.penOnly && e.pointerType === 'touch') { penOnlyHint(); return; }
+    if (e.pointerType === 'mouse' && e.button !== 0) return;
+    closePanels();
+    try { ink.setPointerCapture(e.pointerId); } catch (err) {}
+    const t = tools.tool;
+    const s = { t, c: t === 'eraser' ? null : tools.colour[t], w: SIZES[t][tools.size[t]], p: [e.clientX / W, e.clientY / H] };
+    drawing = { id: e.pointerId, s, lx: e.clientX, ly: e.clientY };
+    if (t === 'highlighter') drawTemp(); else segment(e.clientX, e.clientY, e.clientX + 0.01, e.clientY);
+  });
+  ink.addEventListener('pointermove', e => {
+    if (!drawing || e.pointerId !== drawing.id) return;
+    const evs = e.getCoalescedEvents ? e.getCoalescedEvents() : [e];
+    for (const ev of (evs.length ? evs : [e])) {
+      const x = ev.clientX, y = ev.clientY;
+      drawing.s.p.push(x / W, y / H);
+      if (drawing.s.t !== 'highlighter') segment(drawing.lx, drawing.ly, x, y);
+      drawing.lx = x; drawing.ly = y;
+    }
+    if (drawing.s.t === 'highlighter') drawTemp();
+  });
+  const endStroke = e => {
+    if (!drawing || e.pointerId !== drawing.id) return;
+    const v = view(); pushUndo(v); v.strokes.push(drawing.s);
+    drawing = null; tctx.clearRect(0, 0, W, H); render(); updateButtons();
+  };
+  ink.addEventListener('pointerup', endStroke);
+  ink.addEventListener('pointercancel', endStroke);
+  function segment(x0, y0, x1, y1) {
+    ctx.save(); styleFor(ctx, drawing.s);
+    ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1, y1); ctx.stroke(); ctx.restore();
+  }
+  function drawTemp() { tctx.clearRect(0, 0, W, H); drawStroke(tctx, drawing.s, true); }
+
+  function pushUndo(v) { v.undo.push(v.strokes.slice()); if (v.undo.length > 150) v.undo.shift(); v.redo = []; }
+  function undo() { const v = view(); if (!v.undo.length) return; v.redo.push(v.strokes); v.strokes = v.undo.pop(); render(); updateButtons(); }
+  function redo() { const v = view(); if (!v.redo.length) return; v.undo.push(v.strokes); v.strokes = v.redo.pop(); render(); updateButtons(); }
+  let clearTimer = null;
+  function clearInk() {
+    const v = view(), b = $('#clearBtn');
+    if (!v.strokes.length) return;
+    if (!b.classList.contains('confirm')) {
+      b.classList.add('confirm'); b.dataset.html = b.innerHTML; b.textContent = 'Tap again';
+      clearTimer = setTimeout(resetClear, 2500); return;
+    }
+    resetClear(); pushUndo(v); v.strokes = []; render(); updateButtons();
+  }
+  function resetClear() { const b = $('#clearBtn'); clearTimeout(clearTimer); if (b.classList.contains('confirm')) { b.classList.remove('confirm'); b.innerHTML = b.dataset.html; } }
+
+  // ---------- Sticky notes ----------
+  function addNote() {
+    const v = view(), n = v.notes.length % 6;
+    const note = { id: ++noteId, x: (W / 2 - 170 + n * 30) / W, y: (H / 2 - 170 + n * 30) / H, w: 340 / W, h: 260 / H, text: '', c: NOTE_COLOURS[0], fs: 1, z: ++zTop };
+    v.notes.push(note);
+    const el = buildNote(note); notesLayer.appendChild(el);
+    setTimeout(() => el.querySelector('.note-text').focus(), 30);
+  }
+  function renderNotes() { notesLayer.innerHTML = ''; for (const n of view().notes) notesLayer.appendChild(buildNote(n)); }
+  function placeNote(el, n) {
+    Object.assign(el.style, { left: n.x * W + 'px', top: n.y * H + 'px', width: n.w * W + 'px', height: n.h * H + 'px', background: n.c, zIndex: n.z });
+  }
+  function buildNote(n) {
+    const el = document.createElement('div'); el.className = 'note'; placeNote(el, n);
+    el.innerHTML = `<div class="note-bar"><div class="grip"></div>
+      <button data-a="colour" title="Change colour">&#9679;</button>
+      <button data-a="smaller" title="Smaller text">A&minus;</button>
+      <button data-a="bigger" title="Bigger text">A+</button>
+      <button data-a="delete" title="Delete note">&times;</button></div>
+      <div class="note-text" contenteditable="true" spellcheck="false"></div><div class="note-resize"></div>`;
+    const text = el.querySelector('.note-text'), bar = el.querySelector('.note-bar'), grip = el.querySelector('.note-resize');
+    text.innerText = n.text; text.style.fontSize = NOTE_SIZES[n.fs] + 'px';
+    text.addEventListener('input', () => { n.text = text.innerText.replace(/\n$/, ''); });
+    el.addEventListener('pointerdown', () => { n.z = ++zTop; el.style.zIndex = n.z; closePanels(); });
+    bar.addEventListener('click', e => {
+      const a = e.target.closest('button')?.dataset.a; if (!a) return;
+      if (a === 'colour') { n.c = NOTE_COLOURS[(NOTE_COLOURS.indexOf(n.c) + 1) % NOTE_COLOURS.length]; el.style.background = n.c; }
+      if (a === 'smaller' && n.fs > 0) text.style.fontSize = NOTE_SIZES[--n.fs] + 'px';
+      if (a === 'bigger' && n.fs < NOTE_SIZES.length - 1) text.style.fontSize = NOTE_SIZES[++n.fs] + 'px';
+      if (a === 'delete') { const v = view(); v.notes.splice(v.notes.indexOf(n), 1); el.remove(); }
+    });
+    dragger(bar, e => !e.target.closest('button'), (dx, dy, st) => {
+      n.x = Math.min(Math.max(st.x + dx, 0), W - 80) / W;
+      n.y = Math.min(Math.max(st.y + dy, 0), H - 44) / H; placeNote(el, n);
+    }, () => ({ x: n.x * W, y: n.y * H }));
+    dragger(grip, () => true, (dx, dy, st) => {
+      n.w = Math.max(160, st.w + dx) / W; n.h = Math.max(120, st.h + dy) / H; placeNote(el, n);
+    }, () => ({ w: n.w * W, h: n.h * H }));
+    return el;
+  }
+  function dragger(handle, ok, move, start) {
+    handle.addEventListener('pointerdown', e => {
+      if (!ok(e)) return;
+      e.preventDefault();
+      try { handle.setPointerCapture(e.pointerId); } catch (err) {}
+      const ox = e.clientX, oy = e.clientY, st = start(), id = e.pointerId;
+      const mv = ev => { if (ev.pointerId === id) move(ev.clientX - ox, ev.clientY - oy, st); };
+      const up = ev => { if (ev.pointerId !== id) return; handle.removeEventListener('pointermove', mv); handle.removeEventListener('pointerup', up); handle.removeEventListener('pointercancel', up); };
+      handle.addEventListener('pointermove', mv); handle.addEventListener('pointerup', up); handle.addEventListener('pointercancel', up);
+    });
+  }
+
+  // ---------- Views ----------
+  const snapById = id => snaps.find(s => s.id === +id);
+  function setView(key) {
+    if (drawing) return;
+    resetClear();
+    current = key;
+    if (key === 'live') stage.dataset.mode = 'live';
+    else if (key.startsWith('cmp:')) {
+      const [, a, b] = key.split(':'), sa = snapById(a), sb = snapById(b);
+      $('#cmpA').src = sa.url; $('#cmpB').src = sb.url;
+      $('#capA').textContent = 'Snapshot ' + a; $('#capB').textContent = 'Snapshot ' + b;
+      stage.dataset.mode = 'compare';
+    } else {
+      const s = snapById(key.split(':')[1]);
+      snapImg.src = s.url; snapImg.style.objectFit = s.fit; stage.dataset.mode = 'snap';
+    }
+    render(); renderNotes(); updateButtons(); renderThumbs();
+  }
+
+  // ---------- Snapshots ----------
+  function capture() {
+    if (current !== 'live') return;
+    const c = frameCanvas();
+    if (!c) return;
+    c.toBlob(blob => {
+      const id = ++snapCounter, url = URL.createObjectURL(blob), img = new Image();
+      img.src = url;
+      snaps.push({ id, url, img, fit: settings.fit });
+      const lv = view('live');
+      views['snap:' + id] = { strokes: lv.strokes.slice(), undo: [], redo: [], notes: lv.notes.map(n => ({ ...n, id: ++noteId })) };
+      if (settings.clearAfter && lv.strokes.length) { pushUndo(lv); lv.strokes = []; render(); }
+      const f = $('#flash'); f.classList.remove('go'); void f.offsetWidth; f.classList.add('go');
+      toast(`Snapshot ${id} added to the tray`);
+      renderThumbs(); updateButtons();
+    }, 'image/jpeg', 0.92);
+  }
+  function renderThumbs() {
+    const box = $('#thumbs'); box.innerHTML = '';
+    if (!snaps.length) { box.innerHTML = '<div class="empty">No snapshots yet. Select the camera button on the toolbar to capture the page under the visualiser.</div>'; }
+    for (const s of snaps) {
+      const t = document.createElement('div');
+      t.className = 'thumb' + (current === 'snap:' + s.id ? ' current' : '');
+      t.innerHTML = `<img src="${s.url}" alt=""><span class="num">${s.id}</span>
+        <button class="tb cmp${cmpSel.includes(s.id) ? ' on' : ''}" data-a="cmp">Compare</button>
+        <button class="tb del" data-a="del" title="Delete">&times;</button>`;
+      t.addEventListener('click', e => {
+        const a = e.target.closest('button')?.dataset.a;
+        if (a === 'cmp') { toggleCmp(s.id); return; }
+        if (a === 'del') { deleteSnap(s.id); return; }
+        setView('snap:' + s.id); closePanels();
+      });
+      box.appendChild(t);
+    }
+    const go = $('#compareGo'); go.disabled = cmpSel.length !== 2;
+    $('#cmpHint').textContent = cmpSel.length === 2 ? `Snapshots ${cmpSel[0]} and ${cmpSel[1]} chosen` : cmpSel.length === 1 ? 'Choose one more to compare' : 'Choose two with the Compare button';
+  }
+  function toggleCmp(id) {
+    const i = cmpSel.indexOf(id);
+    if (i >= 0) cmpSel.splice(i, 1); else { cmpSel.push(id); if (cmpSel.length > 2) cmpSel.shift(); }
+    renderThumbs();
+  }
+  function deleteSnap(id) {
+    const i = snaps.findIndex(s => s.id === id); if (i < 0) return;
+    URL.revokeObjectURL(snaps[i].url); snaps.splice(i, 1);
+    delete views['snap:' + id];
+    for (const k of Object.keys(views)) if (k.startsWith('cmp:') && k.split(':').slice(1).map(Number).includes(id)) delete views[k];
+    const ci = cmpSel.indexOf(id); if (ci >= 0) cmpSel.splice(ci, 1);
+    const inUse = current === 'snap:' + id || (current.startsWith('cmp:') && current.split(':').slice(1).map(Number).includes(id));
+    if (inUse) setView('live'); else { renderThumbs(); updateButtons(); }
+  }
+
+  // ---------- Save the current screen as a PNG ----------
+  function drawFit(c, src, sw, sh, x, y, w, h, mode) {
+    if (!sw || !sh) return;
+    const sc = mode === 'cover' ? Math.max(w / sw, h / sh) : Math.min(w / sw, h / sh);
+    const dw = sw * sc, dh = sh * sc;
+    c.save(); c.beginPath(); c.rect(x, y, w, h); c.clip();
+    c.drawImage(src, x + (w - dw) / 2, y + (h - dh) / 2, dw, dh); c.restore();
+  }
+  function wrapLines(c, text, maxW) {
+    const out = [];
+    for (const para of text.split('\n')) {
+      let line = '';
+      for (const word of para.split(' ')) {
+        const test = line ? line + ' ' + word : word;
+        if (c.measureText(test).width > maxW && line) { out.push(line); line = word; } else line = test;
+      }
+      out.push(line);
+    }
+    return out;
+  }
+  function saveView() {
+    const S = 2, out = document.createElement('canvas');
+    out.width = W * S; out.height = H * S;
+    const c = out.getContext('2d'); c.scale(S, S);
+    c.fillStyle = '#000'; c.fillRect(0, 0, W, H);
+    let name;
+    if (current === 'live') {
+      const f = frameCanvas();
+      if (f) drawFit(c, f, f.width, f.height, 0, 0, W, H, settings.fit);
+      name = 'visualiser-live';
+    }
+    else if (current.startsWith('cmp:')) {
+      const [, a, b] = current.split(':');
+      const hw = stacked ? W : (W - 8) / 2, hh = stacked ? (H - 8) / 2 : H;
+      const boxes = stacked ? [[snapById(a), 0, 0], [snapById(b), 0, hh + 8]] : [[snapById(a), 0, 0], [snapById(b), hw + 8, 0]];
+      for (const [s, x, y] of boxes) drawFit(c, s.img, s.img.naturalWidth, s.img.naturalHeight, x, y, hw, hh, 'contain');
+      name = `visualiser-compare-${a}-and-${b}`;
+    } else {
+      const s = snapById(current.split(':')[1]);
+      drawFit(c, s.img, s.img.naturalWidth, s.img.naturalHeight, 0, 0, W, H, s.fit); name = 'visualiser-snapshot-' + s.id;
+    }
+    const layer = document.createElement('canvas'); layer.width = out.width; layer.height = out.height;
+    const lc = layer.getContext('2d'); lc.scale(S, S);
+    for (const s of view().strokes) drawStroke(lc, s);
+    c.drawImage(layer, 0, 0, W, H);
+    for (const n of [...view().notes].sort((p, q) => p.z - q.z)) {
+      const x = n.x * W, y = n.y * H, w = n.w * W, h = n.h * H, fs = NOTE_SIZES[n.fs];
+      c.save(); c.shadowColor = 'rgba(0,0,0,.45)'; c.shadowBlur = 18; c.shadowOffsetY = 6;
+      c.fillStyle = n.c; c.fillRect(x, y, w, h); c.restore();
+      c.save(); c.beginPath(); c.rect(x, y, w, h); c.clip();
+      c.fillStyle = '#111'; c.font = `${fs}px ${FONT}`; c.textBaseline = 'top';
+      wrapLines(c, n.text, w - 28).forEach((ln, i) => c.fillText(ln, x + 14, y + 22 + i * fs * 1.25));
+      c.restore();
+    }
+    const stamp = new Date().toTimeString().slice(0, 5).replace(':', '');
+    out.toBlob(blob => {
+      const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `${name}-${stamp}.png`;
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+      toast('Image saved to Downloads');
+    }, 'image/png');
+  }
+
+  // ---------- Camera ----------
+  let stream = null;
+  const QUALITY = { max: { width: { ideal: 3840 }, height: { ideal: 2160 } }, '1080': { width: { ideal: 1920 }, height: { ideal: 1080 } }, '720': { width: { ideal: 1280 }, height: { ideal: 720 } } };
+  function stopStream() { if (stream) { stream.getTracks().forEach(t => { t.onended = null; t.stop(); }); stream = null; } }
+  async function startCamera(retried) {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      showMsg('This browser cannot reach the camera. Open this file in Google Chrome.'); return;
+    }
+    showMsg('Starting the camera', true);
+    stopStream();
+    const base = settings.deviceId ? { deviceId: { exact: settings.deviceId } } : {};
+    const attempts = [{ ...base, ...QUALITY[settings.quality], frameRate: { ideal: 30 } }, { ...base }];
+    let err = null;
+    for (const v of attempts) {
+      try { stream = await navigator.mediaDevices.getUserMedia({ video: v, audio: false }); err = null; break; }
+      catch (e) { err = e; if (e.name === 'NotAllowedError' || e.name === 'SecurityError' || e.name === 'NotReadableError') break; }
+    }
+    if (!stream) {
+      if (settings.deviceId && !retried && err && (err.name === 'NotFoundError' || err.name === 'OverconstrainedError')) {
+        settings.deviceId = null; saveSettings(); return startCamera(true);
+      }
+      showError(err); listCameras(); return;
+    }
+    video.srcObject = stream;
+    try { await video.play(); } catch (e) {}
+    const track = stream.getVideoTracks()[0];
+    const st = track.getSettings();
+    if (st.deviceId) { settings.deviceId = st.deviceId; saveSettings(); }
+    track.onended = () => showError({ name: 'Ended' });
+    hideMsg(); listCameras(); updateReadout(); updateButtons();
+  }
+  function showError(e) {
+    const n = e && e.name;
+    // Chrome will not always grant a camera to a page opened straight off the disk.
+    // If that is what happened, say so, because the fix is a different one.
+    const blocked = n === 'NotAllowedError' || n === 'SecurityError' || n === 'NotSupportedError';
+    if (blocked && location.protocol === 'file:') {
+      showMsg('Chrome has not given this page the camera. First try the camera icon at the right of the address bar, choose "Always allow", then select Try again. If there is no camera icon there, Chrome is refusing because the file is opened straight off the disk, and the page needs to be opened from a web address instead.');
+      updateButtons(); return;
+    }
+    const text = {
+      NotAllowedError: 'Camera access is blocked. Select the camera icon at the right of the address bar, choose Allow, then select Try again.',
+      SecurityError: 'Camera access is blocked. Select the camera icon at the right of the address bar, choose Allow, then select Try again.',
+      NotFoundError: 'No camera was found. Check that the visualiser is plugged in, then select Try again.',
+      OverconstrainedError: 'This camera cannot provide the chosen picture quality. Open Camera settings and choose 720p, then select Try again.',
+      NotReadableError: 'The camera is being used by another program. Close the Camera app (and Teams or Zoom), then select Try again.',
+      Ended: 'The camera disconnected. Check the visualiser USB cable, then select Try again.'
+    }[n] || `The camera could not start (${n || 'unknown error'}). Select Try again.`;
+    showMsg(text); updateButtons();
+  }
+  async function listCameras() {
+    try {
+      const cams = (await navigator.mediaDevices.enumerateDevices()).filter(d => d.kind === 'videoinput');
+      const sel = $('#camSelect'); sel.innerHTML = '';
+      cams.forEach((d, i) => { const o = document.createElement('option'); o.value = d.deviceId; o.textContent = d.label || `Camera ${i + 1}`; sel.appendChild(o); });
+      if (!cams.length) { const o = document.createElement('option'); o.textContent = 'No cameras found'; sel.appendChild(o); }
+      if (settings.deviceId) sel.value = settings.deviceId;
+    } catch (e) {}
+  }
+  function updateReadout() {
+    const t = stream && stream.getVideoTracks()[0];
+    if (!t) { $('#readout').textContent = 'No camera running'; return; }
+    const s = t.getSettings();
+    $('#readout').textContent = `Receiving ${s.width || video.videoWidth} × ${s.height || video.videoHeight}` + (s.frameRate ? ` at ${Math.round(s.frameRate)} fps` : '');
+  }
+  const quarterTurn = () => settings.rotate === 90 || settings.rotate === 270;
+  function applyFit() {
+    const q = quarterTurn(), w = q ? H : W, h = q ? W : H;
+    Object.assign(video.style, {
+      objectFit: settings.fit,
+      width: w + 'px', height: h + 'px',
+      left: (W - w) / 2 + 'px', top: (H - h) / 2 + 'px',
+      transform: `rotate(${settings.rotate}deg)` + (settings.mirror ? ' scaleX(-1)' : '')
+    });
+  }
+  // Current video frame with the rotation and mirror baked in, so snapshots and
+  // saved images come out the same way round as the screen.
+  function frameCanvas() {
+    const vw = video.videoWidth, vh = video.videoHeight;
+    if (!vw || !vh) return null;
+    const q = quarterTurn(), c = document.createElement('canvas');
+    c.width = q ? vh : vw; c.height = q ? vw : vh;
+    const cx = c.getContext('2d');
+    cx.translate(c.width / 2, c.height / 2);
+    cx.rotate(settings.rotate * Math.PI / 180);
+    if (settings.mirror) cx.scale(-1, 1);
+    cx.drawImage(video, -vw / 2, -vh / 2, vw, vh);
+    return c;
+  }
+
+  // ---------- UI state ----------
+  function setTool(t) {
+    resetClear();
+    tools.tool = t; document.body.className = document.body.className.replace(/tool-\w+/, '') + ' tool-' + t;
+    updateButtons();
+  }
+  function updateButtons() {
+    const t = tools.tool, v = view();
+    document.querySelectorAll('[data-tool]').forEach(b => b.classList.toggle('active', b.dataset.tool === t));
+    const col = t === 'highlighter' ? tools.colour.highlighter : t === 'pen' ? tools.colour.pen : null;
+    document.querySelectorAll('.swatch').forEach(b => b.classList.toggle('active', b.dataset.c === col));
+    const sizeTool = isInkTool(t) ? t : null;
+    document.querySelectorAll('.size').forEach(b => b.classList.toggle('active', sizeTool && +b.dataset.size === tools.size[sizeTool]));
+    $('#undoBtn').disabled = !v.undo.length; $('#redoBtn').disabled = !v.redo.length;
+    $('#captureBtn').disabled = current !== 'live' || !stream;
+    $('#liveBtn').classList.toggle('active', current === 'live');
+    const bd = $('#badge'); bd.textContent = snaps.length; bd.style.display = snaps.length ? 'block' : 'none';
+    $('#trayBtn').classList.toggle('active', $('#tray').classList.contains('open'));
+    $('#settingsBtn').classList.toggle('active', $('#settings').classList.contains('open'));
+    // pill
+    const back = $('#pillBack');
+    if (current === 'live') { $('#pillText').textContent = 'Live'; $('#pillDot').style.display = 'block'; back.style.display = 'none'; }
+    else {
+      const parts = current.split(':');
+      $('#pillText').textContent = parts[0] === 'cmp' ? `Comparing snapshots ${parts[1]} and ${parts[2]}` : `Snapshot ${parts[1]}`;
+      $('#pillDot').style.display = 'none'; back.style.display = 'block';
+    }
+    const stackBtn = $('#pillStack');
+    stackBtn.style.display = current.startsWith('cmp:') ? 'block' : 'none';
+    stackBtn.textContent = stacked ? 'Side by side' : 'Stack them';
+    document.querySelectorAll('#qualitySeg button').forEach(b => b.classList.toggle('on', b.dataset.q === settings.quality));
+    document.querySelectorAll('#fitSeg button').forEach(b => b.classList.toggle('on', b.dataset.fit === settings.fit));
+    document.querySelectorAll('#rotSeg button').forEach(b => b.classList.toggle('on', +b.dataset.rot === settings.rotate));
+    $('#mirror').checked = settings.mirror;
+    $('#penOnly').checked = settings.penOnly; $('#clearAfter').checked = settings.clearAfter;
+  }
+  function togglePanel(id) {
+    const p = $(id), open = !p.classList.contains('open');
+    closePanels();
+    if (open) {
+      // Sit clear of the toolbar, which wraps to two or three rows on smaller boards,
+      // and scroll rather than run off the top of the screen.
+      const gap = $('#toolbar').offsetHeight + 30;
+      p.style.bottom = gap + 'px';
+      p.style.maxHeight = Math.max(200, window.innerHeight - gap - 24) + 'px';
+      p.classList.add('open');
+    }
+    if (id === '#tray' && open) renderThumbs();
+    if (id === '#settings' && open) { listCameras(); updateReadout(); }
+    updateButtons();
+  }
+  function closePanels() { document.querySelectorAll('.panel.open').forEach(p => p.classList.remove('open')); updateButtons(); }
+  function showMsg(text, busy) { $('#msgText').textContent = text; $('#msgRetry').style.display = busy ? 'none' : 'inline-block'; $('#msg').classList.add('open'); }
+  function hideMsg() { $('#msg').classList.remove('open'); }
+  let toastTimer;
+  function toast(t) { const el = $('#toast'); el.textContent = t; el.classList.add('show'); clearTimeout(toastTimer); toastTimer = setTimeout(() => el.classList.remove('show'), 2200); }
+  // Some interactive boards report their stylus as a touch, so Pen only can stop the
+  // board drawing at all. Say so rather than leaving it looking broken.
+  let hintAt = 0;
+  function penOnlyHint() {
+    if (Date.now() - hintAt < 6000) return;
+    hintAt = Date.now();
+    toast('Pen only is on. Turn it off in Settings if your board pen will not draw.');
+  }
+  function setBarHidden(h) {
+    $('#toolbar').classList.toggle('hidden', h); $('#showBar').style.display = h ? 'block' : 'none';
+    document.body.classList.toggle('bar-hidden', h); if (h) closePanels();
+  }
+
+  // ---------- Wire up ----------
+  const sw = $('#swatches');
+  COLOURS.forEach(c => {
+    const b = document.createElement('button'); b.className = 'swatch'; b.dataset.c = c; b.style.background = c; b.title = 'Colour'; b.setAttribute('aria-label', 'Colour ' + c);
+    b.addEventListener('click', () => { const t = tools.tool === 'highlighter' ? 'highlighter' : 'pen'; tools.colour[t] = c; setTool(t); });
+    sw.appendChild(b);
+  });
+  document.querySelectorAll('[data-tool]').forEach(b => b.addEventListener('click', () => setTool(b.dataset.tool)));
+  document.querySelectorAll('.size').forEach(b => b.addEventListener('click', () => {
+    const t = isInkTool(tools.tool) ? tools.tool : 'pen'; tools.size[t] = +b.dataset.size; setTool(t);
+  }));
+  $('#undoBtn').addEventListener('click', undo);
+  $('#redoBtn').addEventListener('click', redo);
+  $('#clearBtn').addEventListener('click', clearInk);
+  $('#noteBtn').addEventListener('click', () => { closePanels(); addNote(); });
+  $('#captureBtn').addEventListener('click', capture);
+  $('#trayBtn').addEventListener('click', () => togglePanel('#tray'));
+  $('#trayClose').addEventListener('click', closePanels);
+  $('#compareGo').addEventListener('click', () => { if (cmpSel.length === 2) { setView(`cmp:${cmpSel[0]}:${cmpSel[1]}`); closePanels(); } });
+  $('#liveBtn').addEventListener('click', () => setView('live'));
+  $('#pillBack').addEventListener('click', () => setView('live'));
+  $('#pillStack').addEventListener('click', () => {
+    stacked = !stacked;
+    $('#compareView').classList.toggle('stacked', stacked);
+    updateButtons();
+  });
+  $('#saveBtn').addEventListener('click', saveView);
+  $('#settingsBtn').addEventListener('click', () => togglePanel('#settings'));
+  $('#settingsClose').addEventListener('click', closePanels);
+  $('#fsBtn').addEventListener('click', () => {
+    if (document.fullscreenElement) document.exitFullscreen(); else document.documentElement.requestFullscreen().catch(() => {});
+  });
+  $('#hideBtn').addEventListener('click', () => setBarHidden(true));
+  $('#showBar').addEventListener('click', () => setBarHidden(false));
+  $('#camSelect').addEventListener('change', e => { settings.deviceId = e.target.value; saveSettings(); startCamera(); });
+  document.querySelectorAll('#qualitySeg button').forEach(b => b.addEventListener('click', () => { settings.quality = b.dataset.q; saveSettings(); updateButtons(); startCamera(); }));
+  document.querySelectorAll('#fitSeg button').forEach(b => b.addEventListener('click', () => { settings.fit = b.dataset.fit; saveSettings(); applyFit(); updateButtons(); }));
+  document.querySelectorAll('#rotSeg button').forEach(b => b.addEventListener('click', () => { settings.rotate = +b.dataset.rot; saveSettings(); applyFit(); updateButtons(); }));
+  $('#mirror').addEventListener('change', e => { settings.mirror = e.target.checked; saveSettings(); applyFit(); });
+  $('#penOnly').addEventListener('change', e => { settings.penOnly = e.target.checked; saveSettings(); });
+  $('#clearAfter').addEventListener('change', e => { settings.clearAfter = e.target.checked; saveSettings(); });
+  $('#restartCam').addEventListener('click', () => startCamera());
+  $('#msgRetry').addEventListener('click', () => startCamera());
+  video.addEventListener('resize', updateReadout);
+  if (navigator.mediaDevices && navigator.mediaDevices.addEventListener) navigator.mediaDevices.addEventListener('devicechange', listCameras);
+
+  stage.addEventListener('contextmenu', e => { if (!e.target.closest('.note-text')) e.preventDefault(); });
+  window.addEventListener('resize', resize);
+  document.addEventListener('keydown', e => {
+    if (e.target.closest && e.target.closest('.note-text')) return;
+    const k = e.key.toLowerCase();
+    if ((e.ctrlKey || e.metaKey) && k === 'z') { e.preventDefault(); e.shiftKey ? redo() : undo(); }
+    else if ((e.ctrlKey || e.metaKey) && k === 'y') { e.preventDefault(); redo(); }
+    else if (k === 'escape') closePanels();
+  });
+
+  applyFit(); resize(); setTool('pen'); renderThumbs(); startCamera();
+})();
+</script>
+</body>
+</html>
