@@ -1,0 +1,718 @@
+<title>Stage 3 Report Comments</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: class roll rail on the left, one student worked through as numbered report sections on the right */
+:root{
+  --paper:#ffffff; --ink:#1c1719; --muted:#6b6165; --line:#ddd5d8; --wash:#f6f2f3;
+  --accent:#8c1d40; --accent-ink:#ffffff; --accent-wash:#f6e7ec;
+  --ok:#1f6b3a; --ok-wash:#e5f2e9; --warn:#8a5a00; --warn-wash:#fbf1dc; --bad:#a11b1b; --bad-wash:#fbe5e5;
+  --font:'Montserrat','Century Gothic',CenturyGothic,'Segoe UI',Arial,sans-serif;
+  --mono:ui-monospace,'SFMono-Regular',Consolas,monospace;
+  --r:6px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --paper:#17131a; --ink:#efe8eb; --muted:#a99ca2; --line:#3a3036; --wash:#211b20;
+  --accent:#e2809f; --accent-ink:#1a0d13; --accent-wash:#3a1f2a;
+  --ok:#7fd39b; --ok-wash:#173022; --warn:#f0c46a; --warn-wash:#352a12; --bad:#ff9b9b; --bad-wash:#3a1818; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#17131a; --ink:#efe8eb; --muted:#a99ca2; --line:#3a3036; --wash:#211b20;
+  --accent:#e2809f; --accent-ink:#1a0d13; --accent-wash:#3a1f2a;
+  --ok:#7fd39b; --ok-wash:#173022; --warn:#f0c46a; --warn-wash:#352a12; --bad:#ff9b9b; --bad-wash:#3a1818; color-scheme:dark}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{background:var(--paper);color:var(--ink);font-family:var(--font);font-size:14px;line-height:1.5}
+button,input,select,textarea{font:inherit;color:inherit}
+h1,h2,h3{text-wrap:balance;margin:0;line-height:1.25}
+.top{display:flex;flex-wrap:wrap;align-items:center;gap:12px;justify-content:space-between;border-bottom:3px solid var(--accent);padding-block:12px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.top h1{font-size:18px;font-weight:700}
+.top .sub{color:var(--muted);font-size:12px;font-weight:500;letter-spacing:.06em;text-transform:uppercase}
+.top .acts{display:flex;gap:8px;flex-wrap:wrap}
+.btn{border:1px solid var(--line);background:var(--paper);border-radius:var(--r);padding:7px 12px;cursor:pointer;font-weight:600;font-size:13px}
+.btn:hover{border-color:var(--ink)}
+.btn.pri{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.btn.small{padding:4px 9px;font-size:12px}
+.btn.danger{color:var(--bad)}
+.btn:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,.seg label:focus-within{outline:2px solid var(--accent);outline-offset:2px}
+.app{display:grid;grid-template-columns:250px minmax(0,1fr);min-height:calc(100% - 60px)}
+.rail{border-right:1px solid var(--line);background:var(--wash);padding:14px 10px;display:flex;flex-direction:column;gap:10px}
+.rail h2{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);padding:0 6px}
+.roll{display:flex;flex-direction:column;gap:2px;list-style:none;margin:0;padding:0}
+.roll button{width:100%;display:grid;grid-template-columns:1fr auto;align-items:center;gap:6px;text-align:left;border:0;background:transparent;padding:7px 8px;border-radius:var(--r);cursor:pointer}
+.roll button:hover{background:var(--paper)}
+.roll button.on{background:var(--paper);box-shadow:inset 3px 0 0 var(--accent);font-weight:700}
+.dots{display:flex;gap:3px}
+.dot{width:18px;height:18px;border-radius:50%;border:1px solid var(--line);font-size:9px;font-weight:700;display:grid;place-items:center;color:var(--muted);background:var(--paper)}
+.dot.y{background:var(--ok);border-color:var(--ok);color:var(--paper)}
+.dot.na{opacity:.35}
+.dot.sb{border-radius:4px}
+.rail .foot{margin-top:auto;font-size:11px;color:var(--muted);padding:0 6px}
+main{padding-block:18px 60px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));min-width:0}
+.wrap{max-width:980px}
+.stu{display:flex;flex-wrap:wrap;gap:14px 20px;align-items:flex-end;padding-bottom:14px;border-bottom:1px solid var(--line)}
+.field{display:flex;flex-direction:column;gap:4px;min-width:0}
+.field .seg{align-self:flex-start}
+.field>span,.lbl{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+input[type=text],select,textarea{border:1px solid var(--line);background:var(--paper);border-radius:var(--r);padding:7px 9px;min-width:0;max-width:100%}
+input[type=text]:hover,select:hover,textarea:hover{border-color:var(--muted)}
+.big{font-size:20px;font-weight:700;width:220px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:var(--r);overflow:hidden;flex-wrap:wrap}
+.seg label{position:relative;cursor:pointer}
+.seg input{position:absolute;opacity:0;inset:0;cursor:pointer}
+.seg span{display:block;padding:6px 11px;font-weight:600;font-size:13px;border-right:1px solid var(--line);min-width:34px;text-align:center}
+.seg label:last-child span{border-right:0}
+.seg input:checked+span{background:var(--ink);color:var(--paper)}
+.tabs{display:flex;gap:4px;flex-wrap:wrap;margin:16px 0 18px;border-bottom:1px solid var(--line)}
+.tab{border:0;background:transparent;padding:9px 12px;cursor:pointer;font-weight:600;color:var(--muted);border-bottom:3px solid transparent;margin-bottom:-1px;display:flex;gap:7px;align-items:center}
+.tab .n{font-size:11px;border:1px solid currentColor;border-radius:50%;width:19px;height:19px;display:grid;place-items:center}
+.tab.on{color:var(--ink);border-bottom-color:var(--accent)}
+.tab.done .n{background:var(--ok);border-color:var(--ok);color:var(--paper)}
+.sec{display:flex;flex-direction:column;gap:16px}
+.sec h2{font-size:17px}
+.hint{color:var(--muted);font-size:13px;max-width:70ch}
+.q{border:1px solid var(--line);border-radius:var(--r);padding:14px;display:flex;flex-direction:column;gap:10px}
+.q h3{font-size:14px;font-weight:700}
+.q h3 small{font-weight:500;color:var(--muted)}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end}
+.row>.field{flex:1 1 200px}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;align-items:start}
+.slot{border-top:1px dashed var(--line);padding-top:10px;display:flex;flex-direction:column;gap:8px}
+.slot:first-of-type{border-top:0;padding-top:0}
+.line{font-family:var(--font);width:100%;resize:vertical;min-height:72px;background:var(--wash);font-weight:500}
+.chips{display:flex;flex-wrap:wrap;gap:5px}
+.chip{font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px;background:var(--wash);color:var(--muted);border:1px solid var(--line)}
+.chip.ok{background:var(--ok-wash);color:var(--ok);border-color:transparent}
+.chip.bad{background:var(--bad-wash);color:var(--bad);border-color:transparent}
+.chip.warn{background:var(--warn-wash);color:var(--warn);border-color:transparent}
+.out{border:2px solid var(--ink);border-radius:var(--r);padding:14px;display:flex;flex-direction:column;gap:10px}
+.out textarea{width:100%;min-height:190px;resize:vertical;font-size:14px;line-height:1.6}
+.meter{display:flex;gap:16px;flex-wrap:wrap;font-size:13px;font-variant-numeric:tabular-nums;align-items:center}
+.meter b{font-size:16px}
+.checks{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:5px}
+.checks li{font-size:13px;padding:6px 10px;border-radius:var(--r);background:var(--wash)}
+.checks li.bad{background:var(--bad-wash);color:var(--bad)}
+.checks li.warn{background:var(--warn-wash);color:var(--warn)}
+.checks li.ok{background:var(--ok-wash);color:var(--ok)}
+select.st-bad{border-color:var(--bad);background:var(--bad-wash);color:var(--bad);font-weight:600}
+select.st-warn{border-color:var(--warn);background:var(--warn-wash);color:var(--warn);font-weight:600}
+.why{font-size:12.5px;font-weight:600;margin:-4px 0 0;padding-left:2px}
+.why.bad{color:var(--bad)} .why.warn{color:var(--warn)}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12.5px;color:var(--muted)}
+.legend i{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+.preview{font-size:14px;line-height:1.75;background:var(--wash);border-radius:var(--r);padding:12px}
+.preview mark{background:none;color:inherit;border-radius:3px;padding:1px 2px}
+.preview mark.bad{background:var(--bad-wash);color:var(--bad);box-shadow:inset 0 -2px 0 var(--bad)}
+.preview mark.warn{background:var(--warn-wash);color:var(--warn);box-shadow:inset 0 -2px 0 var(--warn)}
+.tbl{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th,td{border-bottom:1px solid var(--line);padding:7px 6px;text-align:left;vertical-align:middle}
+th{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+td.c,th.c{text-align:center;width:44px}
+td.c input{width:17px;height:17px;accent-color:var(--accent);cursor:pointer}
+.kla{display:flex;flex-direction:column;gap:12px}
+.kla-h{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-end;justify-content:space-between}
+.sub-h td{background:var(--wash);font-weight:700}
+.copyblk{border:1px solid var(--line);border-radius:var(--r);padding:12px;display:flex;flex-direction:column;gap:8px}
+.copyblk .head{display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap}
+.copyblk .head h3{font-size:13px}
+.copyblk .head small{color:var(--muted);font-weight:500}
+.copyblk pre{margin:0;white-space:pre-wrap;word-break:break-word;font-family:var(--font);font-size:13.5px;background:var(--wash);padding:10px;border-radius:var(--r)}
+.copyblk pre.empty{color:var(--muted);font-style:italic}
+.btn.copied{background:var(--ok);border-color:var(--ok);color:var(--paper)}
+.navrow{display:flex;justify-content:space-between;gap:10px;margin-top:6px}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.45);display:grid;place-items:center;z-index:50;padding:16px}
+.modal .box{background:var(--paper);color:var(--ink);border-radius:10px;max-width:560px;width:100%;padding:18px;display:flex;flex-direction:column;gap:12px;max-height:90vh;overflow:auto}
+.modal textarea{width:100%;min-height:200px;font-family:var(--mono);font-size:12.5px}
+.rules{font-size:13px;columns:2 280px;column-gap:24px;margin:0;padding-left:18px}
+.rules li{break-inside:avoid;margin-bottom:4px}
+details summary{cursor:pointer;font-weight:600}
+.toast{position:fixed;bottom:calc(16px + env(safe-area-inset-bottom,0px));right:calc(16px + env(safe-area-inset-right,0px));background:var(--ink);color:var(--paper);padding:9px 14px;border-radius:var(--r);font-weight:600;font-size:13px;z-index:60}
+.empty-state{border:1px dashed var(--line);border-radius:var(--r);padding:28px;text-align:center;display:flex;flex-direction:column;gap:12px;align-items:center}
+.ex-tag{font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--accent);margin-left:4px}
+@media (max-width:820px){
+  .app{grid-template-columns:1fr}
+  .rail{border-right:0;border-bottom:1px solid var(--line)}
+  .roll{flex-direction:row;overflow-x:auto;gap:4px}
+  .roll li{flex:0 0 auto}
+  .roll button{width:auto}
+  .rail .foot{display:none}
+  .grid2{grid-template-columns:1fr}
+  .big{width:100%}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<header class="top">
+  <div>
+    <div class="sub">Semester 2 · Stage 3</div>
+    <h1>Report Comment Builder</h1>
+  </div>
+  <div class="acts">
+    <button class="btn" id="b-class" type="button">Add students</button>
+    <button class="btn" id="b-backup" type="button">Back up / restore</button>
+    <button class="btn" id="b-rules" type="button">School rules</button>
+  </div>
+</header>
+<div class="app">
+  <aside class="rail">
+    <h2>Class</h2>
+    <ul class="roll" id="roll"></ul>
+    <div class="foot">E English · M Maths · G General comment · ✓ entered in SchoolBytes</div>
+  </aside>
+  <main><div class="wrap" id="main"></div></main>
+</div>
+<div id="modal-root"></div>
+
+<script>
+const BANK = {"sg": {"English": {"Oral Language and Communication": ["Speaks with appropriate volume when sharing thoughts and ideas", "Speaks confidently when expressing opinions and ideas", "Responds to questions with clear explanations", "Asks questions and contributes to group discussions", "Evaluates information shared by others in discussions", "Recognises social expectations and conventions when speaking to different audiences", "Follows agreed protocols and roles in group tasks", "Adjusts language and style to suit different speaking situations", "Engages with questions about literature by explaining and analysing ideas", "Speaks confidently, contributes to discussions, and explains responses clearly", "Asks questions, evaluates ideas, and follows social conventions when interacting with peers", "Responds to questions with detailed explanations", "Listens actively and provides feedback to others", "Paraphrases and builds on others' ideas when listening", "Analyses key points through paraphrasing and note-taking", "Recalls and applies taught vocabulary in spoken tasks", "Listens actively, paraphrases, and responds with explanations to contribute meaningfully to discussions", "Applies learnt vocabulary in responses"], "Vocabulary": ["Applies taught vocabulary to writing", "Recalls and applies taught vocabulary to writing", "Uses topic-specific vocabulary purposefully in writing and speaking", "Uses words that show probability, possibility, or obligation in writing (modality)", "Uses synonyms to vary language and make meaning clear", "Applies new words learned from reading or discussion in writing and speaking", "Uses factual words clearly and persuasive or emotive words effectively", "Uses language to discuss how texts are written (metalanguage)", "Understands idioms and metaphors in texts", "Uses topic-specific vocabulary, synonyms, and figurative language effectively in writing and speaking", "Applies words that show probability or obligation (modality), and combines factual and persuasive language for effect", "Incorporates new vocabulary from reading and discussion while explaining ideas clearly"], "Reading Comprehension": ["Answers inferential questions", "Answers literal questions", "Fluently reads simple passages", "Reads a variety of texts", "Fluently reads texts and re-reads when meaning is lost (e.g., )", "Answers simple literal and inferential questions after reading", "Draws on strong background knowledge to read for meaning", "Scans a variety of texts for information", "Independently reads a wide range of texts with fluency and understanding", "Reads fluently, using phonics knowledge and morphemes to decode unfamiliar words (e.g., )", "Adjusts reading speed and expression to suit purpose and engage the audience (e.g., )", "Selects and reflects on texts based on personal interest and enjoyment (e.g., )", "Applies subject-specific vocabulary and background knowledge to new reading contexts (e.g., )", "Compares ideas across texts to make connections (e.g., )", "Combines ideas across texts to deepen understanding (e.g., )", "Understands text structures and multimodal features that support meaning (e.g., )", "Explains how language choices and modality influence meaning and tone (e.g., )", "Recognises whether language expresses a personal opinion or a fact to identify bias (e.g., )", "Monitors comprehension by questioning and clarifying (e.g., )", "Re-reads when meaning is unclear to improve understanding (e.g., )", "Summarises key ideas from multiple texts (e.g., )", "Reads fluently, decoding unfamiliar words, and adjusts pace and expression to engage the audience (e.g., )", "Applies subject knowledge and vocabulary to new texts while monitoring comprehension (e.g., )", "Uses connecting words and phrases, language choices, and modality to interpret meaning and tone across texts (e.g., )", "Reflects on personal experiences and viewpoints to enhance comprehension and reading fluency (e.g., )"], "Creating Written Texts": ["Follows taught structure to plan and draft a written text", "Expands sentences and includes greater detail", "Uses scaffolds to plan and draft texts", "Carefully edits work, ensuring all sentences are grammatically correct", "Writes paragraphs containing a topic sentence (main idea) and supporting details", "Writes grammatically correct sentences and avoids 'run on' sentences by overusing conjunctions (e.g. 'and')", "Uses subordinating conjunctions to write complex sentences (e.g., )", "Carefully edits all written work for simple punctuation errors (e.g., )", "Uses figurative language in {poss} writing to entertain {poss} audience (e.g., )", "Uses text connectives such as 'next', 'then' and 'finally' to enhance the cohesion of a text", "Consistently uses commas to separate clauses where appropriate in written work (e.g., )"], "Sentence-Level Grammar": ["Uses verbs in different forms within sentences to add detail and variety (e.g., )", "Chooses precise verbs to make meaning clear (e.g., )", "Chooses precise verb groups to enhance meaning (e.g., )", "Adds extra information about nouns using clauses (e.g., )", "Experiments with placement of adverbial clauses for effect (e.g., )", "Adds extra details about nouns to expand meaning (e.g., )", "Uses nouns to express abstract ideas clearly and concisely (e.g., )", "Selects sentence types to suit purpose (e.g., )", "Selects sentence types to suit effect (e.g., )", "Varies sentence structures for clarity (e.g., )", "Varies sentence lengths for impact (e.g., )", "Uses verbs in different forms, clauses, and appositives to add detail and vary sentence structure (e.g., )", "Varies sentence types and structures to suit purpose and effect (e.g., )", "Uses nouns to express abstract ideas clearly and concisely, and precise verbs to enhance meaning (e.g., )"], "Punctuation": ["Uses capital letters accurately for sentences, names, and acronyms", "Uses commas correctly to separate clauses (e.g., )", "Uses commas correctly to separate phrases (e.g., )", "Uses commas correctly to separate items in a list (e.g., )", "Uses quotation marks consistently for dialogue (e.g., )", "Uses quotation marks consistently for quotations (e.g., )", "Applies a range of punctuation accurately and creatively to enhance meaning (e.g., )"], "Imaginative Purposes": ["Makes creative choices about time and place to enhance reader engagement (e.g., )", "Develops character profiles and motives to support the story (e.g., )", "Chooses and controls narrative voice across a text (e.g., )", "Uses shades of meaning to make writing more precise (e.g., )", "Uses time connectives to sequence events (e.g., )", "Uses figurative language to enhance meaning (e.g., )", "Uses similes to describe ideas, characters, or events (e.g., )", "Uses metaphors to convey meaning and emotion (e.g., )", "Uses personification to bring ideas or objects to life (e.g., )", "Uses alliteration for effect (e.g., )", "Applies \"show, don't tell\" techniques in writing (e.g., )", "Uses descriptive language to enhance settings, characters, and events (e.g., )", "Chooses precise, engaging verbs to make writing stronger (e.g., )", "Includes descriptive language in writing (e.g., )", "Uses time, place, characters, and narrative voice to enhance reader engagement and develop themes (e.g., )", "Uses figurative and descriptive language, including similes, metaphors, personification, and alliteration, to enrich writing (e.g., )", "Applies \"show, don't tell\" techniques with descriptive language in writing (e.g., )"], "Persuasive Purposes": ["Chooses text formats with appropriate structures, features, and language to persuade a target audience (e.g., )", "Groups ideas to develop a clear statement of position (e.g., )", "Organises arguments to support a position (e.g., )", "Structures conclusions effectively to reinforce the argument (e.g., )", "Creates arguments based on facts (e.g., )", "Presents arguments from one or multiple viewpoints to engage audiences (e.g., )", "Uses rhetorical devices in writing (e.g., )", "Combines opinions with facts for persuasive effect (e.g., )", "Includes calls to action in writing (e.g., )", "Uses exaggeration or hyperbole to emphasise points (e.g., )", "Uses groups of three for rhetorical effect (e.g., )", "Appeals to authority or expert opinion to support arguments (e.g., )", "Uses emotive language to influence the audience (e.g., )", "Incorporates facts and statistics to support arguments (e.g., )", "Uses alliteration or repetition for rhetorical effect (e.g., )", "Uses modality to make statements showing possibility, certainty, or obligation (e.g., )", "Combines opinion and fact for persuasive effect (e.g., )", "Acknowledges sources of information to add credibility and authority (e.g., )", "Chooses text formats, structures, and language features to persuade a target audience effectively (e.g., )", "Uses a range of rhetorical devices, including modality, rhetorical questions, and emotive language, to influence the audience (e.g., )", "Supports arguments with credible sources, facts, statistics, and appeals to authority (e.g., )"], "Spelling": ["Applies taught spelling strategies (e.g., )", "Spells words containing taught letter-sound correspondences (e.g. au, oa, ir) and suffixes (e.g., )", "Uses letter-sound knowledge to write simple words (e.g., )", "Identifies short and long vowels to assist with spelling (e.g., )", "Uses taught spelling rules when spelling one syllable words (e.g. tch/ck/dge at the end of a one syllable word with a short vowel sound)", "Identifies the base word, and applies the relevant rule (snatch - short vowel requires 'tch')", "Identifies the base word", "Spells multi-syllabic words containing sophisticated spelling patterns (e.g. acceptable, casualty, substitute)", "Accurately reads and spells words", "Accurately reads and spells words containing the following letter sound correspondences; a_e, i_e, o_e, u_e, e_e, ing, oa, ow, or, ore, ar, ee, ea, _y, ey, oy, oi, c(s), g(j), ou/ow", "Spells simple homophones correctly (e.g. too / to, there /their/ they're)"], "Understanding and Responding to Literature": ["Uses narrative techniques, characterisation, imagery, symbols, and word choice to show ideas and emotions in texts (e.g., )", "Analyses story structure, character development, and literary devices such as imagery, symbols, and connotation (e.g., )", "Examines how texts present arguments and establish authority using voice, evidence, or expertise (e.g., )", "Considers how the author's perspective and social, cultural, or historical context influence meaning (e.g., )", "Explores how genre and themes shape the ideas and messages in a text (e.g., )", "Semester 2"], "Handwriting": ["Writes legibly and fluently"]}, "Maths": {"Problem Solving and Reasoning": ["Explains reasoning in calculations", "Justifies the methods used to solve problems", "Explains reasoning and justifies methods used"], "Representing": ["Uses diagrams to represent mathematical ideas", "Uses tables to represent mathematical ideas", "Uses grids to represent mathematical ideas", "Uses sketches to represent mathematical ideas", "Uses diagrams, tables, grids, and sketches to represent mathematical ideas"], "Patterns, Rules, and Properties": ["Identifies patterns in number, measurement, and geometry", "Applies rules in number, measurement, and geometry", "Applies properties in number, measurement, and geometry", "Identifies and applies patterns, rules, and properties in number, measurement, and geometry"], "Communicating and Presenting": ["Presents solutions clearly", "Shows step-by-step working for multi-step problems", "Presents solutions clearly, including step-by-step working for multi-step problems"], "Reflecting and Evaluating": ["Reflects on solutions", "Considers alternative strategies when solving problems", "Reflects on solutions and considers alternative strategies when solving problems"], "Arithmetic (AR)": ["Solves word problems involving addition of whole numbers up to 10,000", "Solves word problems involving subtraction of whole numbers up to 10,000", "Solves word problems involving addition and subtraction of whole numbers up to 10,000", "Applies addition strategies with decimals to two decimal places", "Applies subtraction strategies with decimals to two decimal places", "Selects and applies efficient mental strategies to calculate addition with whole numbers and decimals", "Selects and applies efficient mental strategies to calculate subtraction with whole numbers and decimals", "Uses written strategies to calculate addition with whole numbers and decimals", "Uses written strategies to calculate subtraction with whole numbers and decimals", "Uses place value understanding to solve multi-step problems with whole numbers", "Uses place value understanding to solve multi-step problems with decimals", "Checks answers for accuracy using estimation", "Checks answers for accuracy using mental strategies"], "Multiplication and Division (MR)": ["Uses extended area models to multiply numbers up to three digits by two digits", "Uses algorithm methods to multiply numbers up to three digits by one digit", "Uses mental strategies to estimate division with three-digit numbers or more", "Solves word problems involving multiplication with products of three-digit numbers or more", "Solves word problems involving division with totals up to three-digit numbers or more", "Solves division problems involving numbers up to four digits"], "Fractions (RQF)": ["Finds equivalent fractions to add fractions with the same or related denominators", "Finds equivalent fractions to subtract fractions with the same or related denominators", "Finds equivalent fractions to add and subtract fractions with the same or related denominators", "Solves word problems involving addition of fractions with denominators including 2, 4, and 8", "Solves word problems involving subtraction of fractions with denominators including 2, 4, and 8", "Solves word problems involving addition and subtraction of fractions with denominators including 2, 4, and 8", "Calculates fractions of quantities in word problems", "Adds fractions using equivalence strategies", "Subtracts fractions using equivalence strategies", "Converts fractions to decimals", "Converts fractions to percentages", "Converts decimals to fractions", "Converts decimals to percentages", "Converts percentages to fractions", "Converts percentages to decimals", "Converts between fractions, decimals, and percentages", "Solves word problems using fractions, decimals, and percentages"], "Ratio, Number and Proportion (RN)": ["Represents fractions as decimals in word problems", "Represents fractions as percentages in word problems", "Interprets fractions as decimals in word problems", "Interprets fractions as percentages in word problems", "Applies proportional reasoning to compare quantities in word problems", "Solves problems involving parts of a whole using fractions", "Solves problems involving fractions using decimals", "Solves problems involving fractions using percentages", "Analyses quantities using fractions", "Analyses quantities using decimals", "Analyses quantities using percentages", "Converts between fractions, decimals, and percentages to compare results", "Represents and compares fractions, decimals, and percentages"], "Measurement and Number Sense (NSM)": ["Converts kilograms to grams", "Converts grams to kilograms", "Converts kilograms and grams to tonnes", "Converts tonnes to kilograms", "Converts between kilograms, grams, and tonnes", "Compares mass using kilograms", "Compares mass using grams", "Compares and records mass using kilograms and grams", "Records mass in kilograms", "Records mass in grams", "Calculates mass using kilograms", "Calculates mass using grams", "Calculates mass using kilograms and grams", "Solves word problems involving total mass", "Solves word problems involving differences in mass", "Solves word problems involving remaining quantities of mass", "Uses decimals to record measurements to two decimal places", "Uses decimals to calculate measurements to two decimal places", "Uses decimals to compare measurements to two decimal places", "Uses decimals to record, calculate, and compare mass measurements to two decimal places", "Solves multi-step word problems involving measurements with decimals to two decimal places"], "Geometry and Measurement (GM)": ["Converts millimetres to centimetres", "Converts millimetres to metres", "Converts millimetres to kilometres", "Converts centimetres to millimetres", "Converts centimetres to metres", "Converts centimetres to kilometres", "Converts metres to millimetres", "Converts metres to centimetres", "Converts metres to kilometres", "Converts kilometres to millimetres", "Converts kilometres to centimetres", "Converts kilometres to metres", "Converts between millimetres, centimetres, metres, and kilometres", "Compares lengths including measurements from mm to km", "Orders lengths including measurements from mm to km", "Adds lengths including measurements from mm to km", "Solves word problems involving combined lengths using millimetres, centimetres, metres, and kilometres", "Uses measurement reasoning to organise length data in word problems", "Uses measurement reasoning to interpret length data in word problems"], "Angles (GM)": ["Identifies angles in various shapes up to 360°", "Measures angles in various shapes up to 360°", "Explains relationships between angles in a full turn (360°)", "Finds missing angles in shapes using angle sum rules", "Identifies right angles (90°)", "Identifies 45° angles", "Identifies straight angles (180°)", "Explains relationships between angles in a full turn", "Identifies right angles, straight angles, and 45-degree angles in shapes"], "2D Shapes (2DS)": ["Identifies polygons as regular", "Identifies polygons as irregular", "Identifies and describes polygons as regular or irregular", "Recognises translation of shapes", "Recognises reflection of shapes", "Recognises rotation of shapes", "Recognises and describes translations, reflections, and rotations of shapes", "Translates shapes on a grid using given coordinates", "Dissects polygons to create new shapes", "Rearranges polygons to create new shapes", "Solves word problems involving 2D shape transformations", "Solves word problems involving 2D shape construction", "Identifies polygons as regular or irregular", "Translates shapes on a grid using coordinates", "Dissects and rearranges polygons to create new shapes", "Solves word problems involving 2D shape transformations and construction"], "3D Shapes (3DS)": ["Identifies nets for given 3D shapes", "Matches 3D shapes to their correct names", "Matches 3D shapes to their correct nets", "Creates nets for 3D shapes using given dimensions", "Creates nets for 3D shapes using given shapes", "Solves word problems involving constructing 3D shapes from nets", "Identifies nets for 3D shapes and matches them to the correct shapes", "Creates nets for 3D shapes using given dimensions or shapes"], "Data (DATA / Statistics)": ["Interprets graphs to identify maximum values", "Interprets graphs to identify minimum values", "Interprets graphs to identify differences in values", "Analyses trends in data sets over time", "Explains differences between data sets", "Explains variations in measurements", "Uses data from graphs to solve word problems involving totals", "Uses data from graphs to solve word problems involving differences", "Uses data from graphs to solve word problems involving comparisons", "Explains why graphs may focus on specific time periods", "Explains why graphs may focus on subsets of data", "Interprets graphs to identify maximum, minimum, and differences in values", "Analyses trends and explains variations across data sets", "Uses data to solve word problems involving totals, differences, and comparisons", "Explains why graphs may focus on specific time periods or subsets of data"]}}, "gc": {"Positive characteristics": [["Cheerful and curious", "cheerful and curious", "cheerful and curious"], ["Kind and thoughtful", "kind and thoughtful", "kind and thoughtful"], ["Friendly and enthusiastic", "friendly and enthusiastic", "friendly and enthusiastic"], ["Quiet and considerate", "quiet and considerate", "quiet and considerate"], ["Creative and imaginative", "creative and imaginative", "creative and imaginative"], ["Helpful and caring", "helpful and caring", "helpful and caring"], ["Determined and hardworking", "determined and hardworking", "determined and hardworking"], ["Polite and respectful", "polite and respectful", "polite and respectful"], ["Sensible and reliable", "sensible and reliable", "sensible and reliable"], ["Motivated and conscientious", "motivated and conscientious", "motivated and conscientious"], ["Gentle and compassionate", "gentle and compassionate", "gentle and compassionate"], ["Capable and cooperative", "capable and cooperative", "capable and cooperative"], ["Mature and responsible", "mature and responsible", "mature and responsible"], ["Happy and well-mannered", "happy and well-mannered", "happy and well-mannered"], ["Sociable and outgoing", "sociable and outgoing", "sociable and outgoing"], ["Kind-hearted and empathetic", "kind-hearted and empathetic", "kind-hearted and empathetic"], ["Diligent and independent", "diligent and independent", "diligent and independent"], ["Inquisitive and observant", "inquisitive and observant", "inquisitive and observant"], ["Energetic and spirited", "energetic and spirited", "energetic and spirited"], ["Artistic and reflective", "artistic and reflective", "artistic and reflective"], ["Courageous and adaptable", "courageous and adaptable", "courageous and adaptable"], ["Positive and engaged", "positive and engaged", "positive and engaged"], ["Ambitious and eager", "ambitious and eager", "ambitious and eager"]], "Overall progress": [["Steady progress", "has made steady progress across most learning areas", "have made steady progress across most learning areas"], ["Strong progress", "has made strong progress across most learning areas", "have made strong progress across most learning areas"], ["Some progress with support", "has made some progress with teacher support", "have made some progress with teacher support"], ["Gradual progress with support", "has made gradual progress with regular teacher support", "have made gradual progress with regular teacher support"], ["Limited progress", "has made limited progress across most learning areas", "have made limited progress across most learning areas"], ["Excellent progress", "has made excellent progress across all key learning areas", "have made excellent progress across all key learning areas"], ["Outstanding progress", "has made outstanding progress across all key learning areas", "have made outstanding progress across all key learning areas"], ["Pleasing progress", "has made pleasing progress across most key learning areas", "have made pleasing progress across most key learning areas"], ["Sound progress", "has made sound progress across most key learning areas", "have made sound progress across most key learning areas"], ["Significant gains", "has made significant gains across most key learning areas", "have made significant gains across most key learning areas"], ["Good progress", "has made good progress across most key learning areas", "have made good progress across most key learning areas"], ["Continual progress", "has made continual progress across most key learning areas", "have made continual progress across most key learning areas"], ["Gradual progress", "has made gradual progress across most key learning areas", "have made gradual progress across most key learning areas"], ["Basic progress", "has made basic progress across most key learning areas", "have made basic progress across most key learning areas"], ["High achievement", "has achieved at a high level across all key learning areas", "have achieved at a high level across all key learning areas"], ["Excellent results through consistent work", "has achieved excellent results through consistent work in all key learning areas", "have achieved excellent results through consistent work in all key learning areas"], ["Excellent progress – literacy", "has made excellent progress across all key learning areas, particularly in literacy,", "have made excellent progress across all key learning areas, particularly in literacy,"], ["Excellent progress – numeracy", "has made excellent progress across all key learning areas, particularly in numeracy,", "have made excellent progress across all key learning areas, particularly in numeracy,"], ["Progress with support – literacy", "has made steady progress with teacher support, particularly in literacy,", "have made steady progress with teacher support, particularly in literacy,"], ["Growing confidence led to progress", "has grown in confidence this semester, leading to excellent progress across all key learning areas,", "have grown in confidence this semester, leading to excellent progress across all key learning areas,"]], "Approach / attitude to learning": [["Positive attitude", "approaches learning with a positive attitude", "approach learning with a positive attitude"], ["Consistent effort", "makes a consistent effort when completing learning tasks", "make a consistent effort when completing learning tasks"], ["Willing to try", "is willing to attempt unfamiliar tasks", "are willing to attempt unfamiliar tasks"], ["Needs encouragement", "needs encouragement to begin and persist with learning tasks", "need encouragement to begin and persist with learning tasks"], ["Variable effort", "needs reminders to apply consistent effort to learning tasks", "need reminders to apply consistent effort to learning tasks"], ["Enthusiastic learner", "displays enthusiasm for learning at all times", "display enthusiasm for learning at all times"], ["Self-motivated", "is self-motivated, requiring very little prompting to stay on task", "are self-motivated, requiring very little prompting to stay on task"], ["Organised approach", "carries out tasks in an organised manner, following directions well", "carry out tasks in an organised manner, following directions well"], ["Takes risks in learning", "is motivated to take risks in learning, embracing new challenges", "are motivated to take risks in learning, embracing new challenges"], ["Growing confidence", "is steadily becoming more confident when approaching learning tasks", "are steadily becoming more confident when approaching learning tasks"], ["Tries hard", "tries hard in all areas of schooling", "try hard in all areas of schooling"], ["Quality focus", "completes tasks with quality in mind", "complete tasks with quality in mind"], ["Enjoys discovery", "enjoys analysing situations to make new discoveries", "enjoy analysing situations to make new discoveries"], ["Eager to share knowledge", "is eager to share knowledge on a range of topics", "are eager to share knowledge on a range of topics"], ["Embraces challenges", "enthusiastically embraces new learning experiences, relishing a challenge", "enthusiastically embrace new learning experiences, relishing a challenge"], ["Persistent", "displays a persistent approach to all learning tasks", "display a persistent approach to all learning tasks"], ["Reflective learner", "is a reflective learner who thoughtfully considers feedback", "are reflective learners who thoughtfully consider feedback"], ["Mature attitude", "has developed a more mature attitude toward learning this semester", "have developed a more mature attitude toward learning this semester"], ["Responds well to structure", "responds well to structured and positive working environments", "respond well to structured and positive working environments"], ["Learning not to give up", "is learning to have a go at all tasks without giving up", "are learning to have a go at all tasks without giving up"]], "Strength / can do": [["Shares ideas", "shares relevant ideas and explains thinking during class discussions", "share relevant ideas and explain thinking during class discussions"], ["Independent work", "begins familiar tasks independently and uses classroom resources to support learning", "begin familiar tasks independently and use classroom resources to support learning"], ["Listens and follows instructions", "listens carefully and follows instructions to complete classroom tasks", "listen carefully and follow instructions to complete classroom tasks"], ["Uses feedback", "uses teacher feedback to improve the quality of completed work", "use teacher feedback to improve the quality of completed work"], ["Problem solving", "explores different strategies when solving problems and explains chosen methods", "explore different strategies when solving problems and explain chosen methods"], ["Cooperative group work", "contributes ideas and shares responsibilities when working in a group", "contribute ideas and share responsibilities when working in a group"], ["Asks for help", "asks for help when needed and uses guidance to continue learning", "ask for help when needed and use guidance to continue learning"], ["Creative ideas", "develops creative ideas and communicates them through classroom activities", "develop creative ideas and communicate them through classroom activities"], ["Work presentation", "takes pride in presenting work neatly and completes tasks thoroughly", "take pride in presenting work neatly and complete tasks thoroughly"], ["Active listener", "is an active listener who makes thoughtful contributions during class discussions", "are an active listener who makes thoughtful contributions during class discussions"], ["Confident speaker", "speaks with confidence during news presentations and class discussions", "speak with confidence during news presentations and class discussions"], ["Resilience", "demonstrates resilience when faced with challenges and learns from mistakes", "demonstrate resilience when faced with challenges and learn from mistakes"], ["Celebrates others", "celebrates the achievements of others and supports peers with their learning", "celebrate the achievements of others and support peers with their learning"], ["Learns new concepts", "readily learns new concepts and produces work of an excellent standard", "readily learn new concepts and produce work of an excellent standard"], ["Thinks outside the box", "is an active class member who often thinks outside the box", "are active class members who often think outside the box"], ["Sets personal goals", "completes tasks conscientiously and often sets personal goals to extend learning", "complete tasks conscientiously and often set personal goals to extend learning"], ["Handwriting and illustrations", "demonstrates excellent handwriting skills and takes time to complete detailed illustrations", "demonstrate excellent handwriting skills and take time to complete detailed illustrations"], ["Confident writer and speaker", "displays self-confidence during writing and speaking tasks", "display self-confidence during writing and speaking tasks"], ["Engaging news presentations", "engages the audience confidently during weekly news presentations", "engage the audience confidently during weekly news presentations"], ["Asks relevant questions", "regularly asks relevant questions to assist learning", "regularly ask relevant questions to assist learning"], ["General knowledge", "has a fantastic level of general knowledge and is keen to share it with peers", "have a fantastic level of general knowledge and are keen to share it with peers"], ["Small group communication", "demonstrates strong interpersonal and communication skills in small groups", "demonstrate strong interpersonal and communication skills in small groups"], ["Confident in new situations", "faces new and unfamiliar situations with increasing confidence", "face new and unfamiliar situations with increasing confidence"]], "Area for development – be specific": [["Maintaining focus", "requires regular reminders to remain focused during whole-class learning", "require regular reminders to remain focused during whole-class learning"], ["Starting tasks independently", "requires teacher prompts to begin tasks and follow instructions independently", "require teacher prompts to begin tasks and follow instructions independently"], ["Completing tasks", "needs support to complete learning tasks within the time provided", "need support to complete learning tasks within the time provided"], ["Checking work", "is encouraged to check completed work carefully and correct errors before submitting tasks", "are encouraged to check completed work carefully and correct errors before submitting tasks"], ["Explaining thinking", "is encouraged to explain thinking in more detail and give reasons for responses", "are encouraged to explain thinking in more detail and give reasons for responses"], ["Contributing to discussions", "is encouraged to share ideas more often during class discussions", "are encouraged to share ideas more often during class discussions"], ["Responding calmly", "requires reminders to manage emotions and respond calmly when disagreements occur", "require reminders to manage emotions and respond calmly when disagreements occur"], ["Keeping hands and feet to self", "requires reminders to keep hands and feet to {poss}self when interacting with peers", "require reminders to keep hands and feet to themselves when interacting with peers"], ["Following instructions", "requires support to listen to instructions and follow each step of classroom tasks", "require support to listen to instructions and follow each step of classroom tasks"], ["Extending learning", "is encouraged to extend learning by attempting more complex tasks and justifying responses", "are encouraged to extend learning by attempting more complex tasks and justifying responses"], ["Working at an appropriate pace", "is learning to work at an appropriate pace in order to avoid careless errors", "are learning to work at an appropriate pace in order to avoid careless errors"], ["Limiting distractions", "is learning to limit distractions and stay on task when working independently", "are learning to limit distractions and stay on task when working independently"], ["Waiting to share ideas", "requires encouragement to wait for a turn before sharing ideas with the class", "require encouragement to wait for a turn before sharing ideas with the class"], ["Building resilience", "is developing resilience and learning to persist when tasks feel difficult", "are developing resilience and learning to persist when tasks feel difficult"], ["Handwriting and presentation", "is encouraged to take more care with handwriting and the presentation of work", "are encouraged to take more care with handwriting and the presentation of work"], ["Seeking clarification", "is encouraged to ask for clarification when unsure of what a task requires", "are encouraged to ask for clarification when unsure of what a task requires"], ["Understanding instructions", "requires additional explanations to understand and complete tasks", "require additional explanations to understand and complete tasks"], ["Reading and writing strategies", "requires support to apply specific strategies when reading and writing", "require support to apply specific strategies when reading and writing"], ["Applying new writing skills", "requires additional assistance to understand and apply new skills, particularly in writing", "require additional assistance to understand and apply new skills, particularly in writing"], ["Working independently", "requires reassurance and support to complete independent tasks", "require reassurance and support to complete independent tasks"], ["Accepting feedback", "is learning to take constructive feedback on board to improve work", "are learning to take constructive feedback on board to improve work"], ["Not comparing to others", "is learning to focus on personal progress rather than comparing abilities with others", "are learning to focus on personal progress rather than comparing abilities with others"], ["Following class rules", "requires encouragement to follow all class rules", "require encouragement to follow all class rules"], ["Managing time", "is learning to manage time more effectively to complete all written work", "are learning to manage time more effectively to complete all written work"], ["Speaking clearly", "is developing voice projection and clarity when speaking to an audience", "are developing voice projection and clarity when speaking to an audience"]], "Wellbeing / social skills / contribution": [["Respectful with peers", "shows respect for classmates and listens to different ideas during shared activities", "show respect for classmates and listen to different ideas during shared activities"], ["Cooperative with peers", "works cooperatively with peers and contributes to shared classroom activities", "work cooperatively with peers and contribute to shared classroom activities"], ["Caring and helpful", "shows care for others and offers help to classmates when opportunities arise", "show care for others and offer help to classmates when opportunities arise"], ["Growing social confidence", "is becoming more confident when joining conversations and activities with peers", "are becoming more confident when joining conversations and activities with peers"], ["Needs help to cooperate", "needs teacher guidance to share resources and work cooperatively with peers", "need teacher guidance to share resources and work cooperatively with peers"], ["Needs help with disagreements", "needs adult support to talk through disagreements and consider the feelings of others", "need adult support to talk through disagreements and consider the feelings of others"], ["Classroom contribution", "contributes to classroom routines by helping with shared responsibilities", "contribute to classroom routines by helping with shared responsibilities"], ["Positive behaviour choices", "displays positive behaviour choices in the classroom and playground", "display positive behaviour choices in the classroom and playground"], ["Enjoys interacting with others", "enjoys interacting positively with teachers and peers", "enjoy interacting positively with teachers and peers"], ["New friendships", "has developed new friendships within the classroom this semester", "have developed new friendships within the classroom this semester"], ["Growing maturity", "is demonstrating a more mature attitude in the classroom and playground", "are demonstrating a more mature attitude in the classroom and playground"], ["Learning not to distract others", "is learning to be more settled in class and not distract others during learning time", "are learning to be more settled in class and not distract others during learning time"], ["Settled into routines", "has settled into class routines with ease", "have settled into class routines with ease"], ["Enthusiastic contributor", "is an enthusiastic contributor to class and school activities", "are enthusiastic contributors to class and school activities"], ["Developing self-control", "has developed greater self-control in the classroom and playground", "have developed greater self-control in the classroom and playground"], ["Growing independence", "has become more independent in managing daily classroom routines", "have become more independent in managing daily classroom routines"], ["Includes others", "speaks kindly to others and includes classmates in activities", "speak kindly to others and include classmates in activities"], ["Empathetic", "shows empathy and considers the feelings of others", "show empathy and consider the feelings of others"], ["Taking responsibility", "is learning to take responsibility for choices and understand that actions have consequences", "are learning to take responsibility for choices and understand that actions have consequences"], ["Gentle with others", "is learning to take care not to push others in the classroom or playground", "are learning to take care not to push others in the classroom or playground"], ["Not calling out", "is learning not to call out or talk over others during class discussions", "are learning not to call out or talk over others during class discussions"], ["Bouncing back", "is learning to bounce back when things do not go to plan", "are learning to bounce back when things do not go to plan"]], "Interest / achievement": [["Sport and physical activity", "shows a particular interest in sport and physical activities", "show a particular interest in sport and physical activities"], ["Visual arts", "shows a particular interest in visual arts and creative activities", "show a particular interest in visual arts and creative activities"], ["Music", "shows a particular interest in music activities", "show a particular interest in music activities"], ["Dance", "shows a particular interest in dance activities", "show a particular interest in dance activities"], ["Reading", "shows a particular interest in reading and discussing books", "show a particular interest in reading and discussing books"], ["Science", "shows a particular interest in scientific investigations", "show a particular interest in scientific investigations"], ["Mathematics", "shows a particular interest in mathematical challenges", "show a particular interest in mathematical challenges"], ["Technology", "shows a particular interest in using technology for learning", "show a particular interest in using technology for learning"], ["Writing", "has shown particular interest in writing, with a consistent dedication to improving these skills", "have shown particular interest in writing, with a consistent dedication to improving these skills"], ["STEM investigations", "particularly enjoys STEM investigations that use design thinking and trial and error to solve problems", "particularly enjoy STEM investigations that use design thinking and trial and error to solve problems"], ["Performing arts", "displays particular confidence during performing arts tasks", "display particular confidence during performing arts tasks"], ["History and geography", "particularly enjoys learning about people and places during history and geography lessons", "particularly enjoy learning about people and places during history and geography lessons"], ["Outdoor learning", "shows enthusiasm and excitement during kitchen, garden and outdoor learning", "show enthusiasm and excitement during kitchen, garden and outdoor learning"], ["Handwriting", "takes particular pride in handwriting and fine motor tasks", "take particular pride in handwriting and fine motor tasks"], ["News and speaking", "displays particular confidence during news and speaking tasks", "display particular confidence during news and speaking tasks"], ["Creative arts", "particularly enjoys creative arts tasks that use imagination to convey ideas", "particularly enjoy creative arts tasks that use imagination to convey ideas"], ["Science experiments", "particularly enjoys science experiments that explore how the world works", "particularly enjoy science experiments that explore how the world works"], ["Fundamental movement skills", "demonstrates strong fundamental movement skills and a keen appreciation for physical activity", "demonstrate strong fundamental movement skills and a keen appreciation for physical activity"], ["Leadership roles", "takes on special responsibilities and leadership roles with pride", "take on special responsibilities and leadership roles with pride"], ["School events", "participates enthusiastically in special events such as book parades, performances and carnivals", "participate enthusiastically in special events such as book parades, performances and carnivals"], ["Choir and singing", "shows a particular interest in choir and singing", "show a particular interest in choir and singing"], ["Phonics and spelling", "shows a particular interest in phonics and spelling", "show a particular interest in phonics and spelling"], ["Awards and achievements", "has been recognised this semester with awards for effort and achievement", "have been recognised this semester with awards for effort and achievement"]]}};
+const PDATA = {
+  HSIE:{title:'Human Society and Its Environment', groups:[['Geography',[
+    'Explains how Australian places are organised through land use and transport, and how they connect to urban, rural and remote areas',
+    'Explains the cause and effect of floods, bushfires and cyclones and strategies to reduce their impact on Australian places']]],
+    note:'History is N/A this semester.'},
+  PDH:{title:'Personal Development, Health and Physical Education', groups:[
+    ['Personal Development and Health',[
+      'Explains how identity is shaped by personal strengths, culture, relationships and experiences',
+      'Describes how identity changes and develops over time',
+      'Applies strategies to manage change and make choices that support a positive identity']],
+    ['Movement Skill & Performance',[
+      'Refines and applies movement skills, such as sprinting, throwing, striking and passing, with control and accuracy across a range of sports and athletics events',
+      'Applies movement concepts and strategies, such as using space, attacking and defending, to solve problems in modified games',
+      'Cooperates in team roles, displaying fair play, respect and inclusion, and gives and responds to feedback to improve performance']]]}
+};
+const SD_ITEMS = ['Demonstrates safe and appropriate behaviour','Uses equipment safely','Works cooperatively','Follows schools values and expectations','Shows care, concern and respect for self and others','Takes responsibility for own actions','Borrows books from the library','Displays a positive attitude to learning','Is prepared and ready to learn','Always tries their best'];
+const GC_CATS = {char:'Positive characteristics',prog:'Overall progress',appr:'Approach / attitude to learning',str:'Strength / can do',dev:'Area for development – be specific',wb:'Wellbeing / social skills / contribution',int:'Interest / achievement'};
+// soften over-claims in the school bank to fit the house rules
+BANK.gc['Approach / attitude to learning'].forEach(r=>{ if(r[0]==='Enthusiastic learner'){ r[1]='displays genuine enthusiasm for learning'; r[2]='display genuine enthusiasm for learning'; }});
+const GCMAP = {}; for(const k in GC_CATS){ GCMAP[k]={}; (BANK.gc[GC_CATS[k]]||[]).forEach(r=>{ if(r[1]) GCMAP[k][r[0]]={hs:r[1],th:r[2]}; }); }
+
+/* ---------- state ---------- */
+const KEY='s3-report-comments-v1';
+let S = null, cur = null, tab = 'eng';
+function blankSlot(){return {item:'',ex:'',conj:'',clause:'',ov:null}}
+function blankKLA(){return {grade:'',effort:'',s:[blankSlot(),blankSlot()],g:[blankSlot(),blankSlot()]}}
+function newStudent(name,pron,year){
+  const sd={}; SD_ITEMS.forEach(i=>sd[i]='U');
+  return {id:Math.random().toString(36).slice(2,9),name:name||'',pron:pron||'he',year:year||'6',maths:true,entered:false,
+    eng:blankKLA(),mth:blankKLA(),
+    hsie:{grade:'',effort:'',m:{}},pdh:{grade:'',effort:'',m:{}},sd,
+    gc:{char:'',prog:'',appr:'',str:'',str2:'',dev:'',dev2:'',wb:'',wb2:'',int:'',int2:'',custom:'',signoff:'auto',notes:'',ov:null,shuffle:0,v:null}};
+}
+function exampleStudent(){
+  const s=newStudent('Asher','he','6'); s.example=true;
+  s.eng.grade='C'; s.eng.effort='H';
+  s.eng.s[0]={item:'Speaks confidently when expressing opinions and ideas',ex:'',conj:'',clause:'',ov:null};
+  s.eng.s[1]={item:'Uses subordinating conjunctions to write complex sentences (e.g., )',ex:'Although the reef is protected, it faces many threats',conj:'',clause:'',ov:null};
+  s.eng.g[0]={item:'Carefully edits all written work for simple punctuation errors (e.g., )',ex:'capital letters for proper nouns',conj:'before',clause:'publishing a final copy',ov:null};
+  s.eng.g[1]={item:'Uses figurative language to enhance meaning (e.g., )',ex:'',conj:'when',clause:'writing narratives',ov:null};
+  s.mth.grade='C'; s.mth.effort='S';
+  s.mth.s[0]={item:'Uses written strategies to calculate addition with whole numbers and decimals',ex:'',conj:'and',clause:'checks answers using estimation',ov:null};
+  s.mth.s[1]={item:'Identifies right angles, straight angles, and 45-degree angles in shapes',ex:'',conj:'',clause:'',ov:null};
+  s.mth.g[0]={item:'Converts between fractions, decimals, and percentages',ex:'1/4 = 0.25 = 25%',conj:'when',clause:'solving word problems',ov:null};
+  s.mth.g[1]={item:'Shows step-by-step working for multi-step problems',ex:'',conj:'so that',clause:'others can follow {poss} reasoning',ov:null};
+  s.hsie.grade='C'; s.hsie.effort='S'; s.pdh.grade='B'; s.pdh.effort='H';
+  s.gc={...s.gc,char:'Kind and thoughtful',prog:'Pleasing progress',appr:'Positive attitude',str:'Shares ideas',str2:'Cooperative group work',dev:'Checking work',wb:'Respectful with peers',int:'Sport and physical activity'};
+  return s;
+}
+function load(){
+  try{ const raw=localStorage.getItem(KEY); if(raw){ S=JSON.parse(raw); } }catch(e){}
+  if(!S||!Array.isArray(S.students)) S={students:[exampleStudent()]};
+  cur = S.students[0]?S.students[0].id:null;
+}
+let saveT=null;
+function save(){ clearTimeout(saveT); saveT=setTimeout(()=>{ try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){} },250); }
+const st = ()=>S.students.find(x=>x.id===cur);
+
+/* ---------- language helpers ---------- */
+const PR={he:{P:'He',p:'he',o:'him',poss:'his',refl:'himself',is:'is',has:'has',s:'s'},she:{P:'She',p:'she',o:'her',poss:'her',refl:'herself',is:'is',has:'has',s:'s'},they:{P:'They',p:'they',o:'them',poss:'their',refl:'themselves',is:'are',has:'have',s:''}};
+const VERBS=new Set();
+(function(){ const add=t=>{ const w=t.toLowerCase().replace(/^to /,'').split(/\s+/); let i=(w[0].endsWith('ly')&&!['apply','reply','supply'].includes(w[0]))?1:0; if(w[i]) VERBS.add(w[i].replace(/[,]/g,'')); };
+  for(const sub of ['English','Maths']) for(const k in BANK.sg[sub]) BANK.sg[sub][k].forEach(add);
+  ['shares','explains','contributes','communicates','celebrates','learns','produces','takes','completes','sets','listens','makes','offers','includes','speaks','begins','asks','demonstrates','correct','gives','understands','focuses','recalls','spells','edits','includes','avoids','justifies','paraphrases','responds','evaluates','follows','contributes','checks','records','presents','supports','monitors','clarifies','builds','reflects','combines','compares','explains','adjusts','decodes','uses','applies','reads','writes','identifies','solves','calculates','converts','orders','adds','creates','develops','shows','considers','analyses','interprets','represents'].forEach(v=>VERBS.add(v));
+})();
+function isAdverb(w){ w=w.toLowerCase(); return w.length>3 && w.endsWith('ly') && !['apply','reply','supply','fly','rely'].includes(w); }
+function base(w){
+  const m=w.match(/^([A-Za-z'-]+)(.*)$/); if(!m) return w; let v=m[1], rest=m[2]; const lw=v.toLowerCase();
+  const irr={is:'be',has:'have',does:'do',goes:'go','re-reads':'re-read'}; if(irr[lw]) return irr[lw]+rest;
+  if(/ies$/.test(lw)) v=v.slice(0,-3)+'y';
+  else if(/(sses|shes|ches|xes|zes)$/.test(lw)) v=v.slice(0,-2);
+  else if(/[^s]s$/.test(lw)) v=v.slice(0,-1);
+  return v+rest;
+}
+function gerund(b){ const lw=b.toLowerCase(); if(lw==='be') return 'being'; if(lw==='have') return 'having'; if(lw==='begin') return 'beginning';
+  if(/ie$/.test(lw)) return b.slice(0,-2)+'ying'; if(/(ee|ye|oe)$/.test(lw)) return b+'ing'; if(/e$/.test(lw)) return b.slice(0,-1)+'ing'; return b+'ing'; }
+// convert a 3rd-person present statement to its base form ("applies x and uses y" -> "apply x and use y")
+function toBaseSentence(t){
+  let w=t.split(' '); if(!w.length) return t;
+  let i=isAdverb(w[0])?1:0; if(w[i]) w[i]=base(w[i]);
+  for(let j=i+1;j<w.length;j++){ const prev=w[j-1]; const clean=w[j].toLowerCase().replace(/[,.;]/g,'');
+    if((prev==='and'||prev==='or'||/,$/.test(prev)) && VERBS.has(clean)) w[j]=base(w[j]); }
+  return w.join(' ');
+}
+function toGerundSentence(t){ let w=t.split(' '); let i=isAdverb(w[0])?1:0; const b=toBaseSentence(t).split(' '); const m=b[i].match(/^([A-Za-z'-]+)(.*)$/); if(m) b[i]=gerund(m[1])+m[2];
+  for(let j=i+1;j<b.length;j++){ const prev=b[j-1]; const orig=(w[j]||'').toLowerCase().replace(/[,.;]/g,''); if((prev==='and'||/,$/.test(prev))&&VERBS.has(orig)){ const mm=b[j].match(/^([A-Za-z'-]+)(.*)$/); if(mm) b[j]=gerund(mm[1])+mm[2]; } }
+  return b.join(' '); }
+function lc1(t){ return t ? t.charAt(0).toLowerCase()+t.slice(1) : t; }
+function art(w){ return /^[aeiou]/i.test(w)?'an':'a'; }
+function fillPron(t,s){ const p=PR[s.pron]; return t.replace(/\{poss\}self/g,p.refl).replace(/\{poss\}/g,p.poss).replace(/\{obj\}/g,p.o).replace(/\{refl\}/g,p.refl); }
+const CONJ_RE=/\b(and|but|or|so|because|when|while|although|though|before|after|until|unless|if|as|since|whereas|whether|once|including)\b/i;
+
+/* ---------- strengths & goals lines ---------- */
+function buildLine(slot,kind,s){
+  if(!slot.item) return '';
+  let t=fillPron(slot.item,s).trim().replace(/\.$/,'');
+  const ex=(slot.ex||'').trim().replace(/\.$/,'');
+  const hasSlot=/\(e\.g\., \)/.test(t);
+  t=t.replace(/\s*\(e\.g\., \)/,'');
+  if(slot.clause && slot.clause.trim()){ t+= (slot.conj? ' '+slot.conj : '') + ' ' + fillPron(slot.clause.trim().replace(/\.$/,''),s); }
+  if(ex) t+=' (e.g., '+ex+')';
+  if(kind==='g'){ t = /^to /i.test(t) ? 'to '+t.slice(3) : 'to '+toBaseSentence(lc1(t)); }
+  else t=lc1(t);
+  t=t.replace(/[.\s]+$/,'');
+  return '* '+t;
+}
+function slotText(slot,kind,s){ return slot.ov!=null ? slot.ov : buildLine(slot,kind,s); }
+function lineChecks(text,kind,slot){
+  const c=[]; if(!text){ return [{t:'Not chosen',k:''}]; }
+  c.push(/^\* /.test(text)?{t:'Starts with *',k:'ok'}:{t:'Must start with "* "',k:'bad'});
+  const body=text.replace(/^\*\s*/,'');
+  c.push(/^[a-z]/.test(body)?{t:'Lowercase start',k:'ok'}:{t:'Start lowercase',k:'bad'});
+  c.push(/[.]\s*$/.test(text)?{t:'Remove full stop',k:'bad'}:{t:'No full stop',k:'ok'});
+  c.push(CONJ_RE.test(body)?{t:'Has a conjunction',k:'ok'}:{t:'Add a conjunction',k:'warn'});
+  if(kind==='g') c.push(/^to /.test(body)?{t:'Starts with "to"',k:'ok'}:{t:'Goal must start with "to"',k:'bad'});
+  if(/\(e\.g\.,?\s*\)/.test(text)) c.push({t:'Empty example',k:'bad'});
+  if(/\b(UNSW|Olympiad|textbook|text book)\b/i.test(text)) c.push({t:'No textbooks or competitions',k:'bad'});
+  if(slot && /\(e\.g\., \)/.test(slot.item) && !slot.ex && slot.ov==null) c.push({t:'Example recommended',k:'warn'});
+  return c;
+}
+function klaDone(k,s){ const all=[...k.s.map(x=>slotText(x,'s',s)),...k.g.map(x=>slotText(x,'g',s))]; return all.every((t,i)=>t && !lineChecks(t,i<2?'s':'g').some(c=>c.k==='bad')); }
+function block(k,kind,s){ return k[kind].map(x=>slotText(x,kind,s)).filter(Boolean).join('\n'); }
+
+/* ---------- general comment engine ---------- */
+function hash(str){ let h=0; for(const ch of str) h=(h*31+ch.charCodeAt(0))>>>0; return h; }
+function g(cat,label,s,pronStart){ const r=GCMAP[cat][label]; if(!r) return ''; const t=(pronStart&&s.pron==='they')?r.th:r.hs; return fillPron(t,s); }
+function norm(t,s){ let x=t; if(s.name) x=x.split(s.name).join('NAME'); return x.toLowerCase().replace(/\b(he|she|they|his|her|their|him|them|himself|herself|themselves)\b/g,'P').replace(/\s+/g,' ').trim(); }
+function signoffs(s){ const p=PR[s.pron];
+  return s.year==='6' ? [
+    `${p.P} ${p.is} well prepared to carry these skills into high school next year.`,
+    `${p.P} should be proud of ${p.poss} efforts throughout ${p.poss} final year of primary school.`,
+    `${p.P} ${p.is} encouraged to continue building on ${p.poss} progress as ${p.p} begin${p.s} high school.`]
+  : [
+    `${p.P} ${p.is} encouraged to continue building on ${p.poss} progress in Year 6.`,
+    `${p.P} should be proud of ${p.poss} efforts this semester.`,
+    `${p.P} ${p.is} well placed to keep building on these skills next year.`]; }
+function progPhrase(s){ let t=g('prog',s.gc.prog,s,true); if(!t) return '';
+  if(/this semester/.test(t)) return t.replace(/,\s*$/,'');
+  if(/, particularly/.test(t)) return t.replace(', particularly',' this semester, particularly').replace(/,\s*$/,'');
+  return t+' this semester'; }
+function slotVariants(s){
+  const c=s.gc, p=PR[s.pron], N=s.name||'Name', V={};
+  const ch=(GCMAP.char[c.char]||{}).hs, ap=g('appr',c.appr,s,false);
+  if(ch&&ap) V.intro=[`${N} is ${art(ch)} ${ch} member of our class who ${ap}.`,`${N} is ${art(ch)} ${ch} student who ${ap}.`,`${N} is ${art(ch)} ${ch} learner who ${ap}.`,`${N} is ${art(ch)} ${ch} class member who ${ap}.`];
+  else if(ch) V.intro=[`${N} is ${art(ch)} ${ch} member of our class.`,`${N} is ${art(ch)} ${ch} student.`];
+  const pr=progPhrase(s);
+  if(pr){ const core=pr.replace(/ this semester/,''); V.prog=[`${p.P} ${pr}.`]; if(!/,/.test(pr)&&!/grown in confidence/.test(pr)) V.prog.push(`${p.P} ${core} throughout this semester.`,`${p.P} ${core} over the course of this semester.`); }
+  const s1=g('str',c.str,s,false), s2=g('str',c.str2,s,false);
+  if(s1) V.str = s2 ? [`${N} ${s1} and ${s2}.`,`${N} ${s1}, as well as ${toGerundSentence(s2)}.`] : [`${N} ${s1}.`];
+  const d1=g('dev',c.dev,s,true), d2=g('dev',c.dev2,s,true);
+  const tails = s.year==='6' ? [` as ${p.p} move${p.s} into high school`,` next year`] : [` in Year 6`,` next year`];
+  if(d1) V.dev = d2 ? [`${p.P} ${d1} and ${d2}.`,`${p.P} ${d1}, and ${p.p} ${d2}.`] : [`${p.P} ${d1}.`,`${p.P} ${d1}${tails[0]}.`,`${p.P} ${d1}${tails[1]}.`];
+  const w1=g('wb',c.wb,s,false), w2=g('wb',c.wb2,s,false);
+  if(w1) V.wb = w2 ? [`${N} ${w1} and ${w2}.`,`${N} ${w1}, as well as ${toGerundSentence(w2)}.`] : [`${N} ${w1}.`];
+  const cu=(c.custom||'').trim().replace(/\.$/,'');
+  const i1=c.int&&c.int!=='None selected'?g('int',c.int,s,true):'', i2=c.int2&&c.int2!=='None selected'?g('int',c.int2,s,true):'';
+  if(cu) V.int=[`${p.P} particularly enjoy${p.s} ${cu}.`,`${p.P} ${s.pron==='they'?'show':'shows'} a particular interest in ${cu}.`];
+  else if(i1){ V.int = i2 ? [`${p.P} ${i1} and ${i2}.`] : [`${p.P} ${i1}.`];
+    if(!i2 && /^shows? a particular interest in /.test(i1)) V.int.push(`${p.P} ${p.has} shown a particular interest in ${i1.replace(/^shows? a particular interest in /,'')} this semester.`); }
+  const so = c.signoff==='yes' || (c.signoff==='auto' && !V.int);
+  if(so) V.sign=signoffs(s);
+  return V;
+}
+const ORDER=['intro','prog','str','dev','wb','int','sign'];
+function othersSentences(s){ const set=new Set(); S.students.forEach(o=>{ if(o.id===s.id||o.example) return; const t=gcText(o,true); splitSent(t).forEach(x=>set.add(norm(x,o))); }); return set; }
+function chooseVariants(s){
+  const V=slotVariants(s), used=othersSentences(s), seed=hash(s.name||'x')+(s.gc.shuffle||0)*7, v={};
+  ORDER.forEach((k,i)=>{ const arr=V[k]; if(!arr) return; const start=(seed+i*13)%arr.length; let pick=start;
+    for(let n=0;n<arr.length;n++){ const idx=(start+n)%arr.length; if(!used.has(norm(arr[idx],s))){ pick=idx; break; } } v[k]=pick; });
+  return v;
+}
+function gcGenerated(s,noChoose){
+  const V=slotVariants(s); let v=s.gc.v;
+  if(!v && !noChoose){ v=chooseVariants(s); s.gc.v=v; }
+  v=v||{};
+  return ORDER.filter(k=>V[k]).map(k=>V[k][(v[k]||0)%V[k].length]).join(' ');
+}
+function gcText(s,noChoose){ return s.gc.ov!=null ? s.gc.ov : gcGenerated(s,noChoose); }
+function splitSent(t){ return (t||'').split(/(?<=[.!?])\s+(?=[A-Z])/).map(x=>x.trim()).filter(Boolean); }
+function klaScore(gr){ return {A:5,B:4,C:3,D:2,E:1}[gr]||0; }
+function gradeAvg(s){ const gs=[s.eng.grade,s.maths?s.mth.grade:'',s.hsie.grade,s.pdh.grade].map(klaScore).filter(Boolean); return gs.length?gs.reduce((a,b)=>a+b,0)/gs.length:0; }
+function progHint(s){ const a=gradeAvg(s); if(!a) return ''; if(a>=4.5) return 'Outstanding progress, Excellent progress or High achievement'; if(a>=3.7) return 'Strong progress or Excellent progress'; if(a>=3.2) return 'Pleasing progress, Good progress or Strong progress'; if(a>=2.7) return 'Sound progress or Steady progress'; if(a>=2) return 'Gradual progress, Some progress with support or Basic progress'; return 'Limited progress or Gradual progress with support'; }
+const HIGH_PROG=['Outstanding progress','Excellent progress','High achievement','Excellent results through consistent work','Excellent progress – literacy','Excellent progress – numeracy','Growing confidence led to progress'];
+const CONFLICTS=[
+  [['appr',['Self-motivated']],['dev',['Maintaining focus','Starting tasks independently','Limiting distractions','Working independently']],'Approach says self-motivated, but the area for development is about focus or independence.'],
+  [['str',['Independent work']],['dev',['Starting tasks independently','Working independently','Completing tasks']],'Strength says works independently, but the development area says otherwise.'],
+  [['str',['Listens and follows instructions']],['dev',['Following instructions','Understanding instructions','Maintaining focus']],'Strength says listens and follows instructions, but the development area is about instructions or focus.'],
+  [['wb',['Positive behaviour choices','Growing maturity','Developing self-control']],['dev',['Keeping hands and feet to self','Following class rules','Responding calmly']],'Wellbeing describes positive behaviour, but the development area is a behaviour concern.'],
+  [['wb',['Positive behaviour choices']],['wb',['Learning not to distract others','Gentle with others','Not calling out','Needs help with disagreements']],'Both wellbeing choices pull in opposite directions.'],
+  [['wb',['Cooperative with peers']],['wb',['Needs help to cooperate']],'Cooperative with peers and needs help to cooperate contradict each other.'],
+  [['appr',['Organised approach']],['dev',['Managing time','Completing tasks']],'Organised approach conflicts with a time or task completion goal.'],
+  [['str',['Asks for help']],['dev',['Seeking clarification']],'Strength says asks for help, but the goal is to ask for clarification.'],
+  [['str',['Confident speaker','Engaging news presentations','Confident writer and speaker']],['dev',['Speaking clearly','Contributing to discussions']],'Strength says confident speaker, but the goal is about speaking up or speaking clearly.'],
+  [['str',['Shares ideas','Active listener']],['dev',['Contributing to discussions']],'Strength says shares ideas, but the goal is to share ideas more often.'],
+  [['str',['Resilience']],['dev',['Building resilience']],'Resilience appears as both a strength and a goal.'],
+  [['appr',['Enthusiastic learner','Positive attitude','Embraces challenges']],['appr',[]],''],
+];
+function picks(s,k){ const c=s.gc; return k==='str'?[c.str,c.str2]:k==='dev'?[c.dev,c.dev2]:k==='wb'?[c.wb,c.wb2]:[c[k]]; }
+
+/* ---------- fit checks: option vs grades, effort and Social Development ---------- */
+const PROG_LVL={'Limited progress':1,'Basic progress':2,'Some progress with support':2,'Gradual progress with support':2,'Progress with support – literacy':2,'Gradual progress':2.5,'Steady progress':3,'Sound progress':3,'Continual progress':3,'Good progress':3.5,'Pleasing progress':3.5,'Strong progress':4,'Significant gains':4,'Growing confidence led to progress':4.5,'Excellent progress':4.5,'Excellent progress – literacy':4.5,'Excellent progress – numeracy':4.5,'Excellent results through consistent work':5,'High achievement':5,'Outstanding progress':5};
+const APPR_NEG=['Needs encouragement','Variable effort','Learning not to give up'];
+const APPR_NEUTRAL=['Growing confidence','Responds well to structure','Mature attitude'];
+const STR_HIGH=['Learns new concepts','Thinks outside the box','General knowledge','Sets personal goals','Problem solving'];
+const DEV_BEHAV=['Maintaining focus','Keeping hands and feet to self','Following class rules','Responding calmly','Limiting distractions','Waiting to share ideas'];
+const DEV_SUPPORT=['Applying new writing skills','Reading and writing strategies','Understanding instructions','Completing tasks','Working independently','Starting tasks independently'];
+const WB_POS=['Positive behaviour choices','Growing maturity','Developing self-control','Cooperative with peers','Respectful with peers','Settled into routines','Enthusiastic contributor','Includes others','Empathetic','Caring and helpful'];
+const WB_NEG=['Needs help to cooperate','Needs help with disagreements','Learning not to distract others','Gentle with others','Not calling out','Taking responsibility','Bouncing back'];
+const G5=g=>({A:5,B:4,C:3,D:2,E:1}[g]||0), EF=e=>({H:3,S:2,L:1}[e]||0);
+function effAvg(s){ const e=[s.eng.effort,s.maths?s.mth.effort:'',s.hsie.effort,s.pdh.effort].map(EF).filter(Boolean); return e.length?e.reduce((a,b)=>a+b,0)/e.length:0; }
+const GL={5:'A',4:'B',3:'C',2:'D',1:'E'};
+function optionStatus(cat,label,s){
+  if(!label||label==='None selected') return null;
+  const avg=gradeAvg(s), ef=effAvg(s), sd=s.sd, eng=G5(s.eng.grade), mth=s.maths?G5(s.mth.grade):0, pdh=G5(s.pdh.grade);
+  const sdLow=i=>['S','R'].includes(sd[i]), sdR=i=>sd[i]==='R', sdA=i=>sd[i]==='A';
+  const r=(k,why)=>({k,why});
+  if(cat==='prog'){
+    let ref=avg, src='grades average';
+    if(/literacy/.test(label)&&eng){ ref=eng; src='English grade is '+s.eng.grade; }
+    if(/numeracy/.test(label)){ if(!s.maths) return r('warn','Not in your maths class, so you have no maths grade to back this up.'); if(mth){ ref=mth; src='Maths grade is '+s.mth.grade; } }
+    if(!ref) return null; const d=(PROG_LVL[label]||3)-ref, txt=src.includes('grade is')?src:'Grades average '+(GL[Math.round(ref)]||'');
+    if(d>=1.75) return r('bad',`Too high. ${txt}.`); if(d<=-1.75) return r('bad',`Too low. ${txt}.`);
+    if(d>=1.25) return r('warn',`A bit high. ${txt}.`); if(d<=-1.25) return r('warn',`A bit low. ${txt}.`);
+    return null; }
+  if(cat==='appr'){
+    if(APPR_NEG.includes(label)){
+      if(ef>=2.75) return r('bad','Effort is High in every subject.');
+      if(sdA('Displays a positive attitude to learning')) return r('warn','Positive attitude is rated Always.');
+      return null; }
+    if(APPR_NEUTRAL.includes(label)) return null;
+    if(ef && ef<=1.5) return r('bad','Effort is mostly Low.');
+    if(sdR('Displays a positive attitude to learning')) return r('bad','Positive attitude is rated Rarely.');
+    if(label==='Tries hard' && (sdLow('Always tries their best')||(ef&&ef<2))) return r('bad','"Always tries their best" or effort is rated low.');
+    if(['Self-motivated','Organised approach'].includes(label) && sdLow('Is prepared and ready to learn')) return r('warn','Prepared and ready to learn is rated '+sd['Is prepared and ready to learn']+'.');
+    if(sdLow('Displays a positive attitude to learning')) return r('warn','Positive attitude is rated Sometimes.');
+    if(ef && ef<2) return r('warn','Effort is mostly Satisfactory or Low.');
+    return null; }
+  if(cat==='str'){
+    if(STR_HIGH.includes(label)){ if(avg && avg<2.5) return r('bad','Describes a high achiever, but grades average '+GL[Math.round(avg)]+'.'); if(avg && avg<3) return r('warn','Describes a high achiever, but grades average '+GL[Math.round(avg)]+'.'); }
+    if(label==='Cooperative group work' && sdLow('Works cooperatively')) return r(sdR('Works cooperatively')?'bad':'warn','Works cooperatively is rated '+sd['Works cooperatively']+'.');
+    if(['Independent work','Listens and follows instructions'].includes(label) && sdLow('Is prepared and ready to learn')) return r('warn','Prepared and ready to learn is rated '+sd['Is prepared and ready to learn']+'.');
+    if(label==='Resilience' && sdLow('Always tries their best')) return r('warn','"Always tries their best" is rated '+sd['Always tries their best']+'.');
+    return null; }
+  if(cat==='dev'){
+    if(label==='Extending learning' && avg && avg<3) return r('bad','This goal is for students working above level. Grades average '+GL[Math.round(avg)]+'.');
+    if(['Applying new writing skills','Reading and writing strategies'].includes(label) && eng>=4) return r(eng===5?'bad':'warn','English grade is '+s.eng.grade+'.');
+    if(DEV_SUPPORT.includes(label) && avg>=4.5) return r('warn','Grades are mostly A.');
+    if(label==='Following class rules' && sdA('Follows schools values and expectations')) return r('bad','Follows school values is rated Always.');
+    if(['Keeping hands and feet to self','Responding calmly'].includes(label) && sdA('Demonstrates safe and appropriate behaviour')) return r('bad','Safe and appropriate behaviour is rated Always.');
+    if(DEV_BEHAV.includes(label) && sdA('Demonstrates safe and appropriate behaviour') && sdA('Follows schools values and expectations')) return r('warn','Behaviour ratings are all Always.');
+    return null; }
+  if(cat==='wb'){
+    if(WB_POS.includes(label)){
+      if(['Positive behaviour choices','Developing self-control','Growing maturity'].includes(label) && sdLow('Demonstrates safe and appropriate behaviour')) return r(sdR('Demonstrates safe and appropriate behaviour')?'bad':'warn','Safe and appropriate behaviour is rated '+sd['Demonstrates safe and appropriate behaviour']+'.');
+      if(['Cooperative with peers','Includes others'].includes(label) && sdLow('Works cooperatively')) return r(sdR('Works cooperatively')?'bad':'warn','Works cooperatively is rated '+sd['Works cooperatively']+'.');
+      if(['Respectful with peers','Caring and helpful','Empathetic'].includes(label) && sdLow('Shows care, concern and respect for self and others')) return r(sdR('Shows care, concern and respect for self and others')?'bad':'warn','Care, concern and respect is rated '+sd['Shows care, concern and respect for self and others']+'.');
+      return null; }
+    if(WB_NEG.includes(label)){
+      if(label==='Needs help to cooperate' && sdA('Works cooperatively')) return r('bad','Works cooperatively is rated Always.');
+      if(['Gentle with others','Not calling out','Learning not to distract others'].includes(label) && sdA('Demonstrates safe and appropriate behaviour')) return r('bad','Safe and appropriate behaviour is rated Always.');
+      if(label==='Taking responsibility' && sdA('Takes responsibility for own actions')) return r('bad','Takes responsibility is rated Always.');
+      return null; }
+    return null; }
+  if(cat==='int'){
+    if(label==='Fundamental movement skills' && pdh && pdh<=2) return r('warn','Says "strong" movement skills, but PDHPE is '+s.pdh.grade+'.');
+    return null; }
+  return null;
+}
+// cross-check against what is already picked in the other questions
+function crossStatus(field,label,s){
+  if(!label) return null; const cat=field.replace(/2$/,'');
+  for(const [a,b,msg] of CONFLICTS){ if(!msg) continue;
+    const pick=(side)=>picks(s,side[0]).filter(Boolean);
+    if(a[0]===cat && a[1].includes(label) && pick(b).some(x=>b[1].includes(x))) return {k:'warn',why:msg};
+    if(b[0]===cat && b[1].includes(label) && pick(a).some(x=>a[1].includes(x))) return {k:'warn',why:msg}; }
+  return null; }
+function fitStatus(field,label,s){ const cat=field.replace(/2$/,''); const a=optionStatus(cat,label,s), b=crossStatus(field,label,s); if(a&&a.k==='bad') return a; return a||b; }
+
+/* ---------- text scan: catches hand-typed wording too ---------- */
+const SUBJ=[
+  ['Maths',/\b(maths?|mathematic\w*|numeracy|numbers?|calculat\w*|times tables|fractions?|arithmetic)\b/i,s=>s.maths?s.mth.grade:''],
+  ['English',/\b(english|literacy|reading|readers?|writing|writers?|spelling|grammar|punctuation|comprehension)\b/i,s=>s.eng.grade],
+  ['PDHPE',/\b(sports?|sporting|physical|movement|athletic\w*|ball skills|PE)\b/i,s=>s.pdh.grade],
+  ['HSIE',/\b(history|geography|HSIE)\b/i,s=>s.hsie.grade]];
+const NEG_RE=/\b(struggl\w*|difficult\w*|not (great|good|confident|yet)|requires? (additional |extra |regular )?(support|assistance|help)|needs? (support|help|assistance)|limited|below|basic|weak\w*|challeng(ing|es) with|finds? it hard)\b/i;
+const POS_RE=/\b(excellent|outstanding|strong|exceptional|fantastic|impressive|high level|confidently|very capable|excels?)\b/i;
+const EFF_POS=/\b(tries hard|consistent effort|hardworking|hard-working|diligent|conscientious|persistent)\b/i;
+function textFlags(s,text){
+  const out=[]; const sents=splitSent(text); const ef=effAvg(s), sd=s.sd;
+  sents.forEach((x,i)=>{
+    for(const [name,re,gr] of SUBJ){ if(!re.test(x)) continue; const g=gr(s); const v=G5(g); if(!v) continue;
+      if(/particular interest|enjoy/i.test(x) && !NEG_RE.test(x) && !POS_RE.test(x)) continue;
+      if(v>=4 && NEG_RE.test(x)) out.push({i,k:'bad',t:`Sentence ${i+1} sounds negative about ${name}, but the ${name} grade is ${g}.`});
+      if(v<=2 && POS_RE.test(x)) out.push({i,k:'bad',t:`Sentence ${i+1} sounds very positive about ${name}, but the ${name} grade is ${g}.`}); }
+    if(ef && ef<=1.5 && EFF_POS.test(x)) out.push({i,k:'bad',t:`Sentence ${i+1} praises effort, but effort is mostly Low.`});
+    if(['S','R'].includes(sd['Always tries their best']) && /\b(always tries|tries (his|her|their) best)\b/i.test(x)) out.push({i,k:'warn',t:`Sentence ${i+1} says tries their best, which is rated ${sd['Always tries their best']}.`});
+  });
+  return out; }
+// which sentence each selected option landed in
+function slotFlags(s,text){
+  const sents=splitSent(text), out=[];
+  ['char','prog','appr','str','str2','dev','dev2','wb','wb2','int','int2'].forEach(f=>{ const label=s.gc[f]; const st=fitStatus(f,label,s); if(!st) return;
+    const cat=f.replace(/2$/,''); const r=GCMAP[cat][label]; if(!r) return;
+    const snip=[r.hs,r.th].map(x=>fillPron(x,s).replace(/^(has |have |is |are )/,'').slice(0,28).toLowerCase());
+    const i=sents.findIndex(x=>snip.some(sn=>x.toLowerCase().includes(sn)));
+    out.push({i,k:st.k,t:`${GC_CATS[cat].replace(' – be specific','')} · "${label}". ${st.why}`}); });
+  return out; }
+function gcChecks(s){
+  const out=[], t=gcText(s), sents=splitSent(t), chars=t.length, c=s.gc, sd=s.sd;
+  if(!t){ return [{k:'',t:'Answer the questions above to build the comment.'}]; }
+  ['char','prog','appr','str','dev','wb'].forEach(k=>{ if(!c[k]) out.push({k:'warn',t:'Still to answer: '+GC_CATS[k].replace(' – be specific','')}); });
+  if(chars<400) out.push({k:'bad',t:`Too short by ${400-chars} characters. Add a second strength, wellbeing point or interest.`});
+  if(chars>800) out.push({k:'bad',t:`Over 800 by ${chars-800} characters. Remove a 2nd choice or shorten a sentence.`});
+  if(sents.length<5||sents.length>6) out.push({k:'bad',t:`${sents.length} sentences. The school asks for 5–6.`});
+  const ban=[[/\bhowever\b/i,'"however"'],[/\band also\b/i,'"and also"'],[/\balways\b/i,'"always" (over-claim)'],[/\bat all times\b/i,'"at all times" (over-claim)'],[/—/,'an em dash']];
+  ban.forEach(([re,l])=>{ if(re.test(t)) out.push({k:'bad',t:'Remove '+l+'.'}); });
+  // alternation
+  const N=s.name, P=PR[s.pron].P; let prev=null, alt=true;
+  sents.forEach((x,i)=>{ const isN=N&&x.startsWith(N), isP=x.startsWith(P+' '); const kind=isN?'N':isP?'P':'X'; if(kind==='X'||kind===prev) alt=false; prev=kind; });
+  if(!alt) out.push({k:'warn',t:`Sentence openings should alternate ${N||'Name'} / ${P}.`});
+  CONFLICTS.forEach(([a,b,msg])=>{ if(!msg) return; const A=picks(s,a[0]).filter(Boolean), B=picks(s,b[0]).filter(Boolean); if(A.some(x=>a[1].includes(x)) && B.some(x=>b[1].includes(x))) out.push({k:'warn',t:'Possible contradiction. '+msg}); });
+  const avg=gradeAvg(s);
+  const low=i=>['S','R'].includes(sd[i]);
+  if(low('Demonstrates safe and appropriate behaviour') && picks(s,'wb').includes('Positive behaviour choices')) out.push({k:'warn',t:'Social Development has safe behaviour at S/R, but the comment says positive behaviour choices.'});
+  if(low('Displays a positive attitude to learning') && ['Positive attitude','Enthusiastic learner','Embraces challenges','Self-motivated'].includes(c.appr)) out.push({k:'warn',t:'Social Development has positive attitude at S/R, but the approach sentence is very positive.'});
+  if(low('Works cooperatively') && picks(s,'wb').includes('Cooperative with peers')) out.push({k:'warn',t:'Social Development has works cooperatively at S/R, but the comment says cooperative with peers.'});
+  if(sd['Works cooperatively']==='A' && picks(s,'wb').includes('Needs help to cooperate')) out.push({k:'warn',t:'Works cooperatively is rated Always, but the comment says needs help to cooperate.'});
+  // similarity
+  const mine=new Set(sents.map(x=>norm(x,s)));
+  S.students.forEach(o=>{ if(o.id===s.id||o.example) return; const ot=gcText(o,true); if(!ot) return; const os=splitSent(ot).map(x=>norm(x,o)); const same=os.filter(x=>mine.has(x)).length;
+    if(same>=2) out.push({k:'warn',t:`${same} sentences are identical to ${o.name}'s comment. Change a choice or use Shuffle wording.`}); });
+  const seen=new Set(out.map(x=>x.t));
+  [...slotFlags(s,t),...textFlags(s,t)].forEach(f=>{ if(!seen.has(f.t)){ seen.add(f.t); out.unshift({k:f.k,t:f.t}); } });
+  if(!out.some(x=>x.k==='bad'||x.k==='warn')) out.push({k:'ok',t:'Meets the length, sentence and wording rules.'});
+  return out;
+}
+function gcDone(s){ return !!gcText(s) && !gcChecks(s).some(x=>x.k==='bad') && ['char','prog','appr','str','dev','wb'].every(k=>s.gc[k]); }
+
+/* ---------- rendering ---------- */
+const esc=t=>String(t??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const $=sel=>document.querySelector(sel);
+function seg(path,val,opts){ return `<div class="seg" role="radiogroup">${opts.map(o=>{const [v,l]=Array.isArray(o)?o:[o,o]; return `<label><input type="radio" name="${esc(path)}" data-k="${esc(path)}" value="${esc(v)}" ${val===v?'checked':''}><span>${esc(l)}</span></label>`}).join('')}</div>`; }
+function renderRoll(){
+  $('#roll').innerHTML=S.students.map(s=>{ const e=klaDone(s.eng,s), m=s.maths?klaDone(s.mth,s):null, gc=gcDone(s);
+    return `<li><button type="button" data-stu="${s.id}" class="${s.id===cur?'on':''}"><span>${esc(s.name||'(no name)')}${s.example?'<span class="ex-tag">example</span>':''}</span><span class="dots"><span class="dot ${e?'y':''}">E</span><span class="dot ${m===null?'na':m?'y':''}">M</span><span class="dot ${gc?'y':''}">G</span><span class="dot sb ${s.entered?'y':''}">✓</span></span></button></li>`; }).join('');
+}
+const TABS=[['eng','English'],['mth','Maths'],['kla','HSIE & PDHPE'],['sd','Social Development'],['gc','General Comment'],['copy','Copy to SchoolBytes']];
+function tabDone(s,k){ if(k==='eng') return klaDone(s.eng,s); if(k==='mth') return s.maths?klaDone(s.mth,s):true; if(k==='kla') return !!(s.hsie.grade&&s.pdh.grade&&s.hsie.effort&&s.pdh.effort); if(k==='sd') return true; if(k==='gc') return gcDone(s); return s.entered; }
+function render(){
+  renderRoll(); const s=st(); const M=$('#main');
+  if(!s){ M.innerHTML=`<div class="empty-state"><h2>No students yet</h2><p class="hint">Paste your class list to start. Each student is saved in this browser as you go.</p><button class="btn pri" type="button" data-act="class">Add students</button></div>`; return; }
+  M.innerHTML=`
+  <div class="stu">
+    <label class="field"><span>Student first name</span><input type="text" class="big" id="f-name" data-k="name" value="${esc(s.name)}" placeholder="e.g. David" autocomplete="off"></label>
+    <div class="field"><span>Pronoun</span>${seg('pron',s.pron,[['he','He'],['she','She'],['they','They']])}</div>
+    <div class="field"><span>Year</span>${seg('year',s.year,[['5','Year 5'],['6','Year 6']])}</div>
+    <div class="field"><span>In my maths class</span>${seg('maths',s.maths?'y':'n',[['y','Yes'],['n','No']])}</div>
+    <div class="field" style="margin-left:auto"><span>&nbsp;</span><button class="btn small danger" type="button" data-act="del" id="b-del">Remove student</button></div>
+  </div>
+  ${s.example?'<p class="hint" style="margin-top:10px">This is a filled-in example so you can see how it works. Add your class with <b>Add students</b>, then remove Asher.</p>':''}
+  <nav class="tabs">${TABS.map(([k,l],i)=>`<button type="button" class="tab ${tab===k?'on':''} ${tabDone(s,k)?'done':''}" data-tab="${k}"><span class="n">${i+1}</span>${l}</button>`).join('')}</nav>
+  <section class="sec" id="sec">${renderTab(s)}</section>`;
+  updateOutputs();
+}
+function bankSelect(path,val,sub){
+  const groups=BANK.sg[sub]; let h=`<select data-k="${path}" id="${path.replace(/\./g,'-')}"><option value="">Choose a statement…</option>`;
+  for(const g in groups){ h+=`<optgroup label="${esc(g)}">`+groups[g].map(t=>`<option value="${esc(t)}" ${t===val?'selected':''}>${esc(t.replace(/\s*\(e\.g\., \)/,' (e.g. …)').replace(/\{poss\}/g,'his/her'))}</option>`).join('')+'</optgroup>'; }
+  return h+'</select>';
+}
+const CONJS=['','and','when','while','so that','because','before','after','by','including'];
+function slotUI(s,klaKey,kind,i,sub){
+  const sl=s[klaKey][kind][i], p=`${klaKey}.${kind}.${i}`;
+  return `<div class="slot">
+    <div class="lbl">${kind==='s'?'Strength':'Goal'} ${i+1}</div>
+    ${bankSelect(p+'.item',sl.item,sub)}
+    <div class="row">
+      <label class="field" style="flex:0 0 130px"><span>Add a clause</span><select data-k="${p}.conj" id="${p.replace(/\./g,'-')}-conj">${CONJS.map(c=>`<option value="${c}" ${sl.conj===c?'selected':''}>${c||'(none)'}</option>`).join('')}</select></label>
+      <label class="field"><span>Clause text</span><input type="text" data-k="${p}.clause" id="${p.replace(/\./g,'-')}-clause" value="${esc(sl.clause)}" placeholder="e.g. writing persuasive texts"></label>
+    </div>
+    <label class="field"><span>Example from ${s.name||'the student'}'s work (optional)</span><input type="text" data-k="${p}.ex" id="${p.replace(/\./g,'-')}-ex" value="${esc(sl.ex)}" placeholder="${kind==='s'?'e.g. 564 rounded to the nearest 100 is 600':'e.g. grudge, a short vowel needs dge'}"></label>
+    <label class="field"><span>Line for SchoolBytes · edit freely</span><textarea class="line" rows="3" data-line="${p}" data-k="${p}.ov" id="${p.replace(/\./g,'-')}-line">${esc(slotText(sl,kind,s))}</textarea></label>
+    <div class="chips" data-chk="${p}"></div>
+  </div>`;
+}
+function klaTab(s,key,sub,label){
+  if(key==='mth' && !s.maths) return `<div class="empty-state"><h2>${esc(s.name||'This student')} is not in your maths class</h2><p class="hint">The maths teacher writes these strengths and goals. Change <b>In my maths class</b> above if this is wrong.</p><button class="btn pri" type="button" data-tab="kla">Next · HSIE & PDHPE</button></div>`;
+  const k=s[key];
+  return `<div class="kla-h"><div><h2>${label}</h2><p class="hint">Pick two strengths and two goals. Each line becomes a dot point under "${esc(s.name||'Name')}'s strengths/goals in ${label} include:", which SchoolBytes already writes for you. A conjunction clause and a real example make each line specific to this student.</p></div>
+    <div class="row"><div class="field"><span>Achievement</span>${seg(key+'.grade',k.grade,['A','B','C','D','E'])}</div><div class="field"><span>Effort</span>${seg(key+'.effort',k.effort,['H','S','L'])}</div></div></div>
+  <div class="grid2">
+    <div class="q"><h3>Strengths <small>what ${esc(s.name||'they')} can do now</small></h3>${slotUI(s,key,'s',0,sub)}${slotUI(s,key,'s',1,sub)}</div>
+    <div class="q"><h3>Goals <small>each starts with "to"</small></h3>${slotUI(s,key,'g',0,sub)}${slotUI(s,key,'g',1,sub)}</div>
+  </div>
+  <div class="navrow"><span></span><button class="btn pri" type="button" data-tab="${key==='eng'?'mth':'kla'}">Next</button></div>`;
+}
+function markerTable(s,key){
+  const d=PDATA[key], m=s[key==='HSIE'?'hsie':'pdh'].m, base=key==='HSIE'?'hsie':'pdh';
+  let rows=''; d.groups.forEach(([gname,items])=>{ rows+=`<tr class="sub-h"><td colspan="6">${esc(gname)}</td></tr>`; items.forEach((it,ii)=>{ const id=gname+'|'+ii; rows+=`<tr><td>${esc(it)}</td>${['A','B','C','D','E'].map(gr=>`<td class="c"><input type="radio" name="${base}-${esc(id)}" data-k="${base}.m.${esc(id)}" value="${gr}" ${m[id]===gr?'checked':''} aria-label="${gr}"></td>`).join('')}</tr>`; }); });
+  return `<div class="tbl"><table><thead><tr><th>Areas of learning</th>${['A','B','C','D','E'].map(x=>`<th class="c">${x}</th>`).join('')}</tr></thead><tbody>${rows}</tbody></table></div>`;
+}
+function renderTab(s){
+  if(tab==='eng') return klaTab(s,'eng','English','English');
+  if(tab==='mth') return klaTab(s,'mth','Maths','Mathematics');
+  if(tab==='kla') return ['HSIE','PDH'].map(key=>{ const b=key==='HSIE'?'hsie':'pdh', k=s[b]; return `<div class="q kla"><div class="kla-h"><h3>${PDATA[key].title}</h3>
+      <div class="row"><div class="field"><span>Achievement</span>${seg(b+'.grade',k.grade,['A','B','C','D','E'])}</div><div class="field"><span>Effort</span>${seg(b+'.effort',k.effort,['H','S','L'])}</div>
+      <button class="btn small" type="button" data-act="fill" data-b="${b}">Set all rows to ${k.grade||'grade'}</button></div></div>
+      ${PDATA[key].note?`<p class="hint">${PDATA[key].note}</p>`:''}${markerTable(s,key)}</div>`; }).join('')+`<p class="hint">These are tick grids in SchoolBytes, so there is nothing to write. Grades here feed the progress suggestion in the General Comment and the checklist on the last tab.</p><div class="navrow"><span></span><button class="btn pri" type="button" data-tab="sd">Next</button></div>`;
+  if(tab==='sd') return `<div class="q"><div class="kla-h"><h3>Social Development and Commitment to Learning</h3><div class="row"><span class="lbl">Set all</span>${['A','U','S','R'].map(x=>`<button class="btn small" type="button" data-act="sdall" data-v="${x}">${x}</button>`).join('')}</div></div>
+    <div class="tbl"><table><thead><tr><th>Areas of learning</th>${['A','U','S','R'].map(x=>`<th class="c">${x}</th>`).join('')}</tr></thead><tbody>${SD_ITEMS.map(it=>`<tr><td>${esc(it)}</td>${['A','U','S','R'].map(v=>`<td class="c"><input type="radio" name="sd-${esc(it)}" data-k="sd.${esc(it)}" value="${v}" ${s.sd[it]===v?'checked':''} aria-label="${v}"></td>`).join('')}</tr>`).join('')}</tbody></table></div>
+    <p class="hint">A Always · U Usually · S Sometimes · R Rarely. Ratings of S or R are checked against the General Comment so the two do not contradict each other.</p></div>
+    <div class="navrow"><span></span><button class="btn pri" type="button" data-tab="gc">Next</button></div>`;
+  if(tab==='gc') return gcTab(s);
+  return copyTab(s);
+}
+function gcSelect(key,label,val,optional){
+  const s=st(), opts=Object.keys(GCMAP[key]);
+  const cur=fitStatus(label,val,s);
+  const o=opts.map(op=>{ const f=fitStatus(label,op,s); const mark=f?(f.k==='bad'?'✕ ':'! '):''; const sty=f?` style="color:var(--${f.k==='bad'?'bad':'warn'})"`:''; return `<option value="${esc(op)}" ${op===val?'selected':''}${sty}${f?` title="${esc(f.why)}"`:''}>${mark}${esc(op)}</option>`; }).join('');
+  return `<select data-k="gc.${label}" id="gc-${label}" class="${cur?'st-'+cur.k:''}"><option value="">${optional?'(optional) none':'Choose…'}</option>${o}</select>${cur?`<p class="why ${cur.k}">${cur.k==='bad'?'✕':'!'} ${esc(cur.why)}</p>`:''}`; }
+function gcTab(s){
+  const c=s.gc, N=esc(s.name||'the student'), hint=progHint(s);
+  return `<div><h2>General Comment</h2><p class="hint">Answer each question. The comment is built from the school's sentence bank, alternates ${N} and ${PR[s.pron].p}, and picks wording that no other student in your class has used yet.</p></div>
+  <div class="legend"><span><i style="background:var(--bad)"></i>✕ contradicts grades, effort or Social Development</span><span><i style="background:var(--warn)"></i>! worth a second look</span><span>Fill in tabs 1–4 first so the colours have something to check against.</span></div>
+  <div class="grid2">
+    <div class="q"><h3>1 · Which words best describe ${N}?</h3>${gcSelect('char','char',c.char)}</div>
+    <div class="q"><h3>2 · How much progress has ${N} made?</h3>${gcSelect('prog','prog',c.prog)}${hint?`<p class="hint">Grades suggest ${esc(hint)}.</p>`:''}</div>
+    <div class="q"><h3>3 · How does ${N} approach learning?</h3>${gcSelect('appr','appr',c.appr)}</div>
+    <div class="q"><h3>4 · What can ${N} do well?</h3>${gcSelect('str','str',c.str)}${gcSelect('str','str2',c.str2,true)}</div>
+    <div class="q"><h3>5 · What is ${N} working towards?</h3>${gcSelect('dev','dev',c.dev)}${gcSelect('dev','dev2',c.dev2,true)}<p class="hint">Be specific. Parents should know exactly what to work on.</p></div>
+    <div class="q"><h3>6 · How does ${N} get along with others?</h3>${gcSelect('wb','wb',c.wb)}${gcSelect('wb','wb2',c.wb2,true)}</div>
+    <div class="q"><h3>7 · What does ${N} enjoy?</h3>${gcSelect('int','int',c.int,true)}${gcSelect('int','int2',c.int2,true)}
+      <label class="field"><span>Or write your own</span><input type="text" data-k="gc.custom" id="gc-custom" value="${esc(c.custom)}" placeholder="e.g. playing AFL at lunch"></label></div>
+    <div class="q"><h3>8 · Closing sentence</h3>${seg('gc.signoff',c.signoff,[['auto','Only if no interest'],['yes','Always add'],['none','None']])}<p class="hint">Year ${s.year} wording${s.year==='6'?' refers to high school':''}.</p>
+      <label class="field"><span>Private notes (never inserted)</span><textarea data-k="gc.notes" id="gc-notes" rows="2">${esc(c.notes)}</textarea></label></div>
+  </div>
+  <div class="out">
+    <div class="kla-h"><h3>General Comment for ${N}</h3><div class="row"><button class="btn small" type="button" data-act="shuffle">Shuffle wording</button><button class="btn small" type="button" data-act="rebuild">Rebuild from answers</button><button class="btn small pri" type="button" data-copy="gc">Copy</button></div></div>
+    <textarea id="gc-out" data-k="gc.ov" aria-label="General comment">${esc(gcText(s))}</textarea>
+    <div class="meter" id="gc-meter"></div>
+    <div class="lbl">Checked comment · flagged sentences are highlighted</div>
+    <div class="preview" id="gc-preview"></div>
+    <ul class="checks" id="gc-checks"></ul>
+    <p class="hint" id="gc-edited"></p>
+  </div>
+  <div class="navrow"><span></span><button class="btn pri" type="button" data-tab="copy">Next · Copy to SchoolBytes</button></div>`;
+}
+function copyTab(s){
+  const blk=(id,title,sub,text)=>`<div class="copyblk"><div class="head"><h3>${title} <small>${sub}</small></h3><button class="btn small pri" type="button" data-copy="${id}">Copy</button></div><pre class="${text?'':'empty'}">${esc(text||'Not written yet')}</pre></div>`;
+  const N=s.name||'Name';
+  const gl=(k,b)=>`${k.grade||'–'} · effort ${k.effort||'–'}`;
+  const marks=(b,key)=>{ const m=s[b].m; return PDATA[key].groups.map(([gn,items])=>items.map((it,ii)=>`<tr><td>${esc(gn)}</td><td>${esc(it)}</td><td class="c"><b>${m[gn+'|'+ii]||'–'}</b></td></tr>`).join('')).join(''); };
+  return `<div><h2>Copy to SchoolBytes</h2><p class="hint">Copy each box into its matching field. SchoolBytes adds "${esc(N)}'s strengths in English include:" for you.</p></div>
+  <div class="grid2">${blk('es','English','strengths',block(s.eng,'s',s))}${blk('eg','English','goals',block(s.eng,'g',s))}
+  ${s.maths?blk('ms','Mathematics','strengths',block(s.mth,'s',s))+blk('mg','Mathematics','goals',block(s.mth,'g',s)):''}</div>
+  ${blk('gc','General Comment',`${gcText(s).length} characters`,gcText(s))}
+  <div class="q"><h3>Grades to click in SchoolBytes</h3><div class="tbl"><table><tbody>
+    <tr><td><b>English</b></td><td colspan="2">${gl(s.eng)}</td></tr>
+    ${s.maths?`<tr><td><b>Mathematics</b></td><td colspan="2">${gl(s.mth)}</td></tr>`:''}
+    <tr><td><b>HSIE</b></td><td colspan="2">${gl(s.hsie)}</td></tr>${marks('hsie','HSIE')}
+    <tr><td><b>PDHPE</b></td><td colspan="2">${gl(s.pdh)}</td></tr>${marks('pdh','PDH')}
+    ${SD_ITEMS.map(i=>`<tr><td>Social Dev.</td><td>${esc(i)}</td><td class="c"><b>${s.sd[i]}</b></td></tr>`).join('')}
+  </tbody></table></div></div>
+  <div class="row"><div class="field"><span>Entered in SchoolBytes</span>${seg('entered',s.entered?'y':'n',[['y','Done'],['n','Not yet']])}</div><button class="btn pri" type="button" data-act="nextstu">Next student</button></div>`;
+}
+function updateOutputs(){
+  const s=st(); if(!s) return;
+  document.querySelectorAll('[data-line]').forEach(el=>{ const p=el.dataset.line.split('.'); const sl=s[p[0]][p[1]][+p[2]]; if(document.activeElement!==el) el.value=slotText(sl,p[1],s);
+    const ch=document.querySelector(`[data-chk="${el.dataset.line}"]`); if(ch) ch.innerHTML=lineChecks(el.value,p[1],sl).map(c=>`<span class="chip ${c.k}">${esc(c.t)}</span>`).join(''); });
+  const o=$('#gc-out'); if(o){ if(document.activeElement!==o) o.value=gcText(s); const t=o.value, n=splitSent(t).length, ch=t.length;
+    $('#gc-meter').innerHTML=`<span><b style="color:var(--${ch>=400&&ch<=800?'ok':'bad'})">${ch}</b> / 400–800 characters</span><span><b style="color:var(--${n>=5&&n<=6?'ok':'bad'})">${n}</b> / 5–6 sentences</span>`;
+    $('#gc-checks').innerHTML=gcChecks(s).map(c=>`<li class="${c.k}">${esc(c.t)}</li>`).join('');
+    const fl=[...slotFlags(s,t),...textFlags(s,t)], lvl={};
+    fl.forEach(f=>{ if(f.i<0) return; if(f.k==='bad'||!lvl[f.i]) lvl[f.i]=f.k; });
+    $('#gc-preview').innerHTML = t ? splitSent(t).map((x,i)=>lvl[i]?`<mark class="${lvl[i]}">${esc(x)}</mark>`:esc(x)).join(' ') : '<span style="color:var(--muted)">Nothing yet</span>';
+    $('#gc-edited').textContent = s.gc.ov!=null ? 'You have edited this comment by hand. Changing answers above will not overwrite it until you press Rebuild.' : ''; }
+  document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('done',tabDone(s,b.dataset.tab)));
+  renderRoll();
+}
+function setPath(obj,path,val){ const p=path.split('.'); let o=obj; for(let i=0;i<p.length-1;i++){ if(p[i]==='m'||p[i]==='sd'){ o=o[p[i]]; o[p.slice(i+1).join('.')]=val; return; } o=o[p[i]]; } o[p[p.length-1]]=val; }
+function onField(e){
+  const el=e.target, k=el.dataset.k; if(!k) return; const s=st(); if(!s) return;
+  let v=el.value;
+  if(k==='maths'){ s.maths=v==='y'; save(); render(); return; }
+  if(k==='entered'){ s.entered=v==='y'; save(); updateOutputs(); return; }
+  if(k.endsWith('.ov')){ setPath(s,k,v); save(); updateOutputs(); return; }
+  setPath(s,k,v);
+  const m=k.match(/^(eng|mth)\.(s|g)\.(\d)\./); if(m) s[m[1]][m[2]][+m[3]].ov=null;
+  if(k.startsWith('gc.')&&k!=='gc.notes'){ s.gc.v=null; if(el.tagName==='SELECT'){ save(); render(); return; } }
+  if(k==='name'||k==='pron'||k==='year'){ s.gc.v=null; if(e.type==='change' && k!=='name') { save(); render(); return; } }
+  save();
+  if(e.type==='change' && el.tagName==='INPUT' && el.type==='radio' && /^(hsie|pdh)\.grade$/.test(k)){ render(); return; }
+  updateOutputs();
+}
+document.addEventListener('input',e=>{ if(e.target.matches('input[type=text],textarea')) onField(e); });
+document.addEventListener('change',e=>{ if(e.target.matches('select,input[type=radio]')) onField(e); });
+
+/* ---------- actions ---------- */
+function toast(t){ const d=document.createElement('div'); d.className='toast'; d.textContent=t; document.body.appendChild(d); setTimeout(()=>d.remove(),1600); }
+function copyText(text,btn){
+  const done=()=>{ if(btn){ const o=btn.textContent; btn.textContent='Copied'; btn.classList.add('copied'); setTimeout(()=>{btn.textContent=o;btn.classList.remove('copied')},1400);} };
+  const fallback=()=>{ const ta=document.createElement('textarea'); ta.value=text; ta.style.position='fixed'; ta.style.opacity='0'; document.body.appendChild(ta); ta.select(); try{document.execCommand('copy'); done();}catch(e){ toast('Select the text and press Ctrl+C'); } ta.remove(); };
+  try{ navigator.clipboard.writeText(text).then(done,fallback); }catch(e){ fallback(); }
+}
+document.addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b) return; const s=st();
+  if(b.dataset.stu){ cur=b.dataset.stu; render(); window.scrollTo(0,0); return; }
+  if(b.dataset.tab){ tab=b.dataset.tab; render(); window.scrollTo(0,0); return; }
+  if(b.dataset.copy){ const m={es:()=>block(s.eng,'s',s),eg:()=>block(s.eng,'g',s),ms:()=>block(s.mth,'s',s),mg:()=>block(s.mth,'g',s),gc:()=>gcText(s)}; const t=m[b.dataset.copy](); if(t) copyText(t,b); else toast('Nothing to copy yet'); return; }
+  const a=b.dataset.act; if(!a) return;
+  if(a==='class') openClass();
+  if(a==='del'){ if(b.dataset.confirm){ S.students=S.students.filter(x=>x.id!==s.id); cur=S.students[0]?.id||null; save(); render(); } else { b.dataset.confirm='1'; b.textContent='Click again to remove '+(s.name||'student'); setTimeout(()=>{ if(b.isConnected){ delete b.dataset.confirm; b.textContent='Remove student'; } },3000); } }
+  if(a==='fill'){ const k=s[b.dataset.b]; if(!k.grade){ toast('Choose the achievement grade first'); return; } const key=b.dataset.b==='hsie'?'HSIE':'PDH'; PDATA[key].groups.forEach(([gn,items])=>items.forEach((_,ii)=>k.m[gn+'|'+ii]=k.grade)); save(); render(); }
+  if(a==='sdall'){ SD_ITEMS.forEach(i=>s.sd[i]=b.dataset.v); save(); render(); }
+  if(a==='shuffle'){ s.gc.shuffle=(s.gc.shuffle||0)+1; s.gc.ov=null; s.gc.v=null; const V=slotVariants(s); const seed=hash(s.name||'x')+s.gc.shuffle*7; s.gc.v={}; ORDER.forEach((k,i)=>{ if(V[k]) s.gc.v[k]=(seed+i*13)%V[k].length; }); save(); updateOutputs(); }
+  if(a==='rebuild'){ s.gc.ov=null; s.gc.v=null; save(); updateOutputs(); }
+  if(a==='nextstu'){ const i=S.students.findIndex(x=>x.id===cur); const n=S.students[i+1]; if(n){ cur=n.id; tab='eng'; render(); window.scrollTo(0,0);} else toast('That was the last student'); }
+  if(a==='close') $('#modal-root').innerHTML='';
+  if(a==='addclass') addClass();
+  if(a==='bk-copy') copyText($('#bk-text').value,b);
+  if(a==='bk-dl'){ try{ const blob=new Blob([$('#bk-text').value],{type:'application/json'}); const u=URL.createObjectURL(blob); const l=document.createElement('a'); l.href=u; l.download='report-comments-backup.json'; document.body.appendChild(l); l.click(); l.remove(); setTimeout(()=>URL.revokeObjectURL(u),2000);}catch(err){ toast('Download blocked here. Use Copy instead.'); } }
+  if(a==='bk-restore'){ try{ const d=JSON.parse($('#bk-in').value); if(!Array.isArray(d.students)) throw 0; if(!b.dataset.confirm){ b.dataset.confirm='1'; b.textContent='Click again to replace all '+S.students.length+' students'; return; } S=d; cur=S.students[0]?.id||null; save(); $('#modal-root').innerHTML=''; render(); toast('Restored '+S.students.length+' students'); }catch(err){ toast('That is not a valid backup'); } }
+});
+$('#b-class').onclick=openClass;
+$('#b-backup').onclick=openBackup;
+$('#b-rules').onclick=openRules;
+function modal(html){ $('#modal-root').innerHTML=`<div class="modal" role="dialog" aria-modal="true"><div class="box">${html}</div></div>`; }
+function openClass(){ modal(`<h2>Add students</h2><p class="hint">One student per line. Add the pronoun and year after commas. Put <b>nomaths</b> on the end for students not in your maths class.</p>
+  <textarea id="cl-in" placeholder="David, he, 6&#10;Sienna, she, 5&#10;Uthman, he, 6, nomaths"></textarea>
+  <div class="row" style="justify-content:flex-end"><button class="btn" type="button" data-act="close">Cancel</button><button class="btn pri" type="button" data-act="addclass">Add to class</button></div>`); setTimeout(()=>$('#cl-in').focus(),20); }
+function addClass(){ const lines=$('#cl-in').value.split(/\n/).map(x=>x.trim()).filter(Boolean); let n=0;
+  lines.forEach(l=>{ const p=l.split(/[,\t]/).map(x=>x.trim()); const name=p[0]; if(!name) return; const low=p.slice(1).map(x=>x.toLowerCase());
+    const pron=low.find(x=>['he','she','they','m','f','male','female'].includes(x)); const pr=!pron?'he':pron==='m'||pron==='male'?'he':pron==='f'||pron==='female'?'she':pron;
+    const yr=low.find(x=>/^(year\s*)?[56]$/.test(x)); const s=newStudent(name,pr,yr?yr.slice(-1):'6'); if(low.includes('nomaths')) s.maths=false; S.students.push(s); n++; });
+  if(n){ cur=S.students[S.students.length-n].id; tab='eng'; } save(); $('#modal-root').innerHTML=''; render(); toast(`Added ${n} student${n===1?'':'s'}`); }
+function openBackup(){ modal(`<h2>Back up / restore</h2><p class="hint">Your class saves automatically in this browser. Keep a backup in case the browser is cleared, or to move to another computer.</p>
+  <label class="field"><span>Backup of ${S.students.length} students</span><textarea id="bk-text" readonly>${esc(JSON.stringify(S))}</textarea></label>
+  <div class="row"><button class="btn pri" type="button" data-act="bk-copy">Copy backup</button><button class="btn" type="button" data-act="bk-dl">Download file</button></div>
+  <label class="field"><span>Restore · paste a backup or choose a file</span><textarea id="bk-in" placeholder='{"students":[...]}'></textarea></label>
+  <div class="row"><input type="file" id="bk-file" accept=".json,application/json"><button class="btn danger" type="button" data-act="bk-restore">Restore</button><button class="btn" type="button" data-act="close" style="margin-left:auto">Close</button></div>`);
+  $('#bk-file').onchange=ev=>{ const f=ev.target.files[0]; if(!f) return; const r=new FileReader(); r.onload=()=>{ $('#bk-in').value=r.result; }; r.readAsText(f); }; }
+function openRules(){ modal(`<h2>Rules this tool follows</h2>
+  <details open><summary>Strengths and goals (English, Maths)</summary><ul class="rules">
+  <li>Two strengths and two goals, each on its own line</li><li>Each line starts with "* "</li><li>Lowercase start and no full stop</li><li>Each line contains a conjunction</li><li>Goals start with "to"</li><li>Present tense</li><li>Give an example where possible</li><li>No textbooks or competitions such as UNSW or Olympiad</li><li>SchoolBytes writes the "Name's strengths in English include:" lead-in</li></ul></details>
+  <details open><summary>General Comment</summary><ul class="rules">
+  <li>400–800 characters and 5–6 sentences</li><li>Positive introduction, overall progress, a can-do strength, a clear area for development, wellbeing, then an interest or closing</li><li>Openings alternate the name and the pronoun</li><li>No "however", no "and also", no "always" or "at all times"</li><li>Areas for development name the actual skill or behaviour</li><li>No contradictions with the Social Development ratings</li><li>Plain, parent-friendly Australian English</li><li>Wording is chosen so no two students in the class share the same sentences</li></ul></details>
+  <div class="row" style="justify-content:flex-end"><button class="btn pri" type="button" data-act="close">Close</button></div>`); }
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') $('#modal-root').innerHTML=''; });
+
+load(); render();
+</script>
