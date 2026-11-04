@@ -4,61 +4,111 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#08090d">
 <title>Classroom Tools</title>
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='2' y='2' width='12' height='12' rx='3'/%3E%3Crect x='18' y='2' width='12' height='12' rx='3'/%3E%3Crect x='2' y='18' width='12' height='12' rx='3'/%3E%3Crect x='18' y='18' width='12' height='12' rx='3'/%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%2308090d'/%3E%3Crect x='7' y='7' width='8' height='8' rx='2' fill='%235b8cff'/%3E%3Crect x='17' y='7' width='8' height='8' rx='2' fill='%23ff6b6b'/%3E%3Crect x='7' y='17' width='8' height='8' rx='2' fill='%23ffb547'/%3E%3Crect x='17' y='17' width='8' height='8' rx='2' fill='%23a78bfa'/%3E%3C/svg%3E">
 <style>
   :root {
     --font: 'Century Gothic', 'CenturyGothic', AppleGothic, 'Gill Sans', 'Trebuchet MS', sans-serif;
-    --ink: #111; --sub: #5a5a5a; --hair: #dcdcdc; --fill: #f4f4f4; --bg: #fff;
+    --bg: #08090d; --ink: #f4f5f8; --sub: #9aa0ae; --dim: #5d6372;
+    --glass: rgba(255, 255, 255, .045); --edge: rgba(255, 255, 255, .09);
   }
   * { box-sizing: border-box; }
-  html, body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--font); }
-  a { color: inherit; }
-  a:focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }
+  html, body { margin: 0; min-height: 100%; background: var(--bg); color: var(--ink); font-family: var(--font); }
+  body { overflow-x: hidden; }
+  a { color: inherit; text-decoration: none; }
 
-  main { max-width: 1040px; margin: 0 auto; padding: 48px 24px 40px; }
-  header { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 30px; }
-  h1 { margin: 0; font-size: clamp(30px, 4vw, 42px); letter-spacing: -.01em; }
-  .lead { margin: 8px 0 0; color: var(--sub); font-size: 17px; }
-  .today { color: var(--sub); font-size: 15px; }
+  /* ---------- Soft light drifting behind everything ---------- */
+  .aurora { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+  .aurora span { position: absolute; border-radius: 50%; filter: blur(90px); opacity: .5; animation: drift 26s ease-in-out infinite alternate; }
+  .aurora .a { width: 52vw; height: 52vw; left: -14vw; top: -20vw; background: #2b4dff; }
+  .aurora .b { width: 44vw; height: 44vw; right: -12vw; top: 6vh; background: #7c3aed; animation-duration: 32s; opacity: .38; }
+  .aurora .c { width: 40vw; height: 40vw; left: 28vw; bottom: -26vw; background: #0ea5a4; animation-duration: 38s; opacity: .28; }
+  @keyframes drift { to { transform: translate(6vw, 5vh) scale(1.12); } }
+  .grain { position: fixed; inset: 0; z-index: 0; pointer-events: none; opacity: .05;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
 
-  #grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 16px; }
+  main { position: relative; z-index: 1; max-width: 1120px; margin: 0 auto; padding: 56px 28px 48px; }
+
+  /* ---------- Header ---------- */
+  header { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; flex-wrap: wrap; margin-bottom: 40px; }
+  .eyebrow { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; letter-spacing: .14em; text-transform: uppercase; color: var(--sub); }
+  .eyebrow i { width: 8px; height: 8px; border-radius: 50%; background: #34d399; box-shadow: 0 0 12px #34d399; }
+  h1 { margin: 10px 0 0; font-size: clamp(38px, 6vw, 68px); line-height: 1; letter-spacing: -.03em; font-weight: bold;
+    background: linear-gradient(180deg, #fff 30%, #a9b0c2); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .clock { text-align: right; }
+  .clock .t { font-size: clamp(34px, 4.6vw, 52px); font-weight: bold; letter-spacing: -.02em; font-variant-numeric: tabular-nums; line-height: 1; }
+  .clock .d { color: var(--sub); font-size: 16px; margin-top: 8px; }
+
+  /* ---------- Glass tiles ---------- */
+  #grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 18px; }
   .tile {
-    display: flex; flex-direction: column; gap: 12px; min-height: 210px; padding: 22px 20px 18px;
-    border: 1.5px solid var(--hair); border-radius: 18px; text-decoration: none; background: #fff;
-    transition: border-color .15s, transform .15s, box-shadow .15s;
+    --ac: #5b8cff; --x: 50%; --y: 0%;
+    position: relative; display: flex; flex-direction: column; gap: 14px; min-height: 236px; padding: 24px 22px 20px;
+    border-radius: 22px; background: var(--glass); border: 1px solid var(--edge);
+    -webkit-backdrop-filter: blur(18px) saturate(140%); backdrop-filter: blur(18px) saturate(140%);
+    overflow: hidden; isolation: isolate;
+    transition: transform .25s cubic-bezier(.2,.7,.2,1), border-color .25s, box-shadow .25s;
+    opacity: 0; transform: translateY(14px); animation: rise .6s cubic-bezier(.2,.7,.2,1) forwards;
   }
-  .tile:hover { border-color: var(--ink); transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,.08); }
-  .ic { width: 52px; height: 52px; border-radius: 14px; background: var(--ink); color: #fff; display: grid; place-items: center; flex: none;
-    -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-  .ic svg { width: 28px; height: 28px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
-  .tile h2 { margin: 2px 0 0; font-size: 20px; }
-  .tile p { margin: 0; color: var(--sub); font-size: 15px; line-height: 1.4; flex: 1; }
-  .meta { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 13px; color: var(--sub); border-top: 1px solid var(--hair); padding-top: 12px; }
-  .go { font-weight: bold; color: var(--ink); font-size: 15px; white-space: nowrap; }
+  @keyframes rise { to { opacity: 1; transform: none; } }
+  /* light that follows the pointer */
+  .tile::before { content: ''; position: absolute; inset: 0; z-index: -1; opacity: 0; transition: opacity .3s;
+    background: radial-gradient(420px circle at var(--x) var(--y), color-mix(in srgb, var(--ac) 22%, transparent), transparent 60%); }
+  /* thin coloured rim along the top */
+  .tile::after { content: ''; position: absolute; left: 22px; right: 22px; top: 0; height: 1px;
+    background: linear-gradient(90deg, transparent, var(--ac), transparent); opacity: .55; }
+  .tile:hover, .tile:focus-visible { transform: translateY(-4px); border-color: color-mix(in srgb, var(--ac) 45%, transparent);
+    box-shadow: 0 18px 50px -18px color-mix(in srgb, var(--ac) 55%, transparent); outline: none; }
+  .tile:hover::before, .tile:focus-visible::before { opacity: 1; }
 
-  footer { margin-top: 36px; padding-top: 18px; border-top: 1px solid var(--hair); color: var(--sub); font-size: 14px; line-height: 1.5; }
+  .top { display: flex; align-items: flex-start; justify-content: space-between; }
+  .ic { width: 54px; height: 54px; border-radius: 16px; display: grid; place-items: center; color: #fff;
+    background: linear-gradient(145deg, var(--ac), color-mix(in srgb, var(--ac) 55%, #000));
+    box-shadow: 0 0 0 1px rgba(255,255,255,.12) inset, 0 10px 28px -6px color-mix(in srgb, var(--ac) 70%, transparent); }
+  .ic svg { width: 27px; height: 27px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  .key { font-size: 12px; color: var(--dim); border: 1px solid var(--edge); border-radius: 7px; padding: 3px 8px; font-variant-numeric: tabular-nums; }
+  .tile h2 { margin: 4px 0 0; font-size: 21px; letter-spacing: -.01em; }
+  .tile p { margin: 0; color: var(--sub); font-size: 15px; line-height: 1.45; flex: 1; }
+  .meta { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 13px; color: var(--dim);
+    border-top: 1px solid var(--edge); padding-top: 14px; }
+  .go { display: inline-flex; align-items: center; gap: 6px; font-weight: bold; font-size: 15px; color: var(--ink); white-space: nowrap; }
+  .go svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; transition: transform .25s; }
+  .tile:hover .go svg { transform: translateX(4px); }
+  .tile:hover .go { color: var(--ac); }
 
-  @media (max-width: 520px) { main { padding: 28px 16px; } }
+  footer { position: relative; z-index: 1; max-width: 1120px; margin: 0 auto; padding: 0 28px 40px; color: var(--dim); font-size: 14px; line-height: 1.55; }
+  footer b { color: var(--sub); font-weight: normal; }
+
+  @media (max-width: 560px) {
+    main { padding: 34px 16px 32px; } footer { padding: 0 16px 32px; }
+    .clock { text-align: left; } .key { display: none; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .aurora span, .tile { animation: none; opacity: 1; transform: none; }
+    .tile, .go svg { transition: none; }
+  }
 </style>
 </head>
 <body>
+<div class="aurora" aria-hidden="true"><span class="a"></span><span class="b"></span><span class="c"></span></div>
+<div class="grain" aria-hidden="true"></div>
+
 <main>
   <header>
     <div>
+      <div class="eyebrow"><i></i><span id="greet">Ready</span></div>
       <h1>Classroom Tools</h1>
-      <p class="lead">Every tool in one place, on any computer. Bookmark this page.</p>
     </div>
-    <div class="today" id="today"></div>
+    <div class="clock"><div class="t" id="time"></div><div class="d" id="date"></div></div>
   </header>
-
   <div id="grid"></div>
-
-  <footer>
-    Each tool opens in its own tab. Tools that remember things, such as name lists, keep them in this browser on this computer.
-    BowerPresent also syncs through your Google Drive.
-  </footer>
 </main>
+
+<footer>
+  <b>Tip:</b> press a number key to open a tool. Each tool opens in its own tab. Tools that remember things, such as name lists,
+  keep them in this browser on this computer, and BowerPresent also syncs through your Google Drive.
+</footer>
 
 <script>
 /*
@@ -69,47 +119,74 @@
     href     the file name you uploaded, or a full web address for a tool hosted somewhere else
     updated  when you last uploaded a new copy, so you always know you have the newest one
     icon     one of: slides, camera, test, rubric, diary, tool
+    accent   the tile's glow colour
 */
 var TOOLS = [
   { name: 'BowerPresent', about: 'Your slides with the name picker, timer, points and whiteboard beside them.',
-    href: 'bowerpresent.html', updated: '4 Nov 2026', icon: 'slides' },
+    href: 'bowerpresent.html', updated: '4 Nov 2026', icon: 'slides', accent: '#5b8cff' },
   { name: 'Visualiser Studio', about: 'The document camera full screen, with drawing, sticky notes, snapshots and compare.',
-    href: 'visualiser.html', updated: '4 Nov 2026', icon: 'camera' },
+    href: 'visualiser.html', updated: '4 Nov 2026', icon: 'camera', accent: '#ff6b6b' },
   { name: 'Maths Assessment Printer', about: 'Pre and post maths assessments, printed with each student’s name.',
-    href: 'maths-printer.html', updated: '4 Nov 2026', icon: 'test' },
+    href: 'maths-printer.html', updated: '4 Nov 2026', icon: 'test', accent: '#ffb547' },
   { name: 'Rubric Marker', about: 'Build or load a rubric, mark each student, then download PDF feedback or a marks spreadsheet.',
-    href: 'rubric-marker.html', updated: '4 Nov 2026', icon: 'rubric' },
+    href: 'rubric-marker.html', updated: '4 Nov 2026', icon: 'rubric', accent: '#a78bfa' },
   { name: 'Teaching Diary', about: 'Note how each lesson went, ready for writing up programs at the end of term.',
-    href: 'https://bit.ly/gvpsdiary', updated: 'Google Apps Script', icon: 'diary' }
+    href: 'https://bit.ly/gvpsdiary', updated: 'Google Apps Script', icon: 'diary', accent: '#34d399' }
 ];
 
 var ICONS = {
   slides: '<rect x="3" y="4" width="18" height="12" rx="1.5"/><path d="M12 16v4M8 20h8"/>',
   camera: '<path d="M3 8h4l2-3h6l2 3h4v11H3z"/><circle cx="12" cy="13" r="4"/>',
   test: '<path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 12h7M9 16h5"/>',
-  diary: '<path d="M5 4h11a3 3 0 013 3v13H8a3 3 0 01-3-3z"/><path d="M5 17a3 3 0 013-3h11M9 8h6"/>',
   rubric: '<rect x="3" y="4" width="18" height="16" rx="1.5"/><path d="M3 9h18M3 14h18M9 4v16M15 4v16"/>',
+  diary: '<path d="M5 4h11a3 3 0 013 3v13H8a3 3 0 01-3-3z"/><path d="M5 17a3 3 0 013-3h11M9 8h6"/>',
   tool: '<rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/>'
 };
+var ARROW = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
 
 (function () {
-  var grid = document.getElementById('grid');
-  TOOLS.forEach(function (t) {
+  var grid = document.getElementById('grid'), tiles = [];
+  TOOLS.forEach(function (t, i) {
     var a = document.createElement('a');
     a.className = 'tile'; a.href = t.href; a.target = '_blank'; a.rel = 'noopener';
+    a.style.setProperty('--ac', t.accent || '#5b8cff');
+    a.style.animationDelay = (80 + i * 70) + 'ms';
+    var top = document.createElement('div'); top.className = 'top';
     var ic = document.createElement('span'); ic.className = 'ic';
     ic.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true">' + (ICONS[t.icon] || ICONS.tool) + '</svg>';
+    top.appendChild(ic);
+    if (i < 9) { var k = document.createElement('span'); k.className = 'key'; k.textContent = i + 1; top.appendChild(k); }
     var h = document.createElement('h2'); h.textContent = t.name;
     var p = document.createElement('p'); p.textContent = t.about;
     var m = document.createElement('div'); m.className = 'meta';
     var u = document.createElement('span');
     u.textContent = /^https?:/.test(t.href) ? t.updated : 'Updated ' + t.updated;
-    var g = document.createElement('span'); g.className = 'go'; g.textContent = 'Open →';
+    var g = document.createElement('span'); g.className = 'go'; g.innerHTML = 'Open ' + ARROW;
     m.appendChild(u); m.appendChild(g);
-    a.appendChild(ic); a.appendChild(h); a.appendChild(p); a.appendChild(m);
-    grid.appendChild(a);
+    a.appendChild(top); a.appendChild(h); a.appendChild(p); a.appendChild(m);
+    a.addEventListener('pointermove', function (e) {
+      var r = a.getBoundingClientRect();
+      a.style.setProperty('--x', (e.clientX - r.left) + 'px');
+      a.style.setProperty('--y', (e.clientY - r.top) + 'px');
+    });
+    grid.appendChild(a); tiles.push(a);
   });
-  document.getElementById('today').textContent = new Date().toLocaleDateString('en-AU', { weekday: 'long', day: 'numeric', month: 'long' });
+
+  // number keys open a tool
+  document.addEventListener('keydown', function (e) {
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+    var n = parseInt(e.key, 10);
+    if (n >= 1 && n <= tiles.length) tiles[n - 1].click();
+  });
+
+  // clock and greeting
+  function tick() {
+    var d = new Date(), h = d.getHours();
+    document.getElementById('time').textContent = d.toLocaleTimeString('en-AU', { hour: 'numeric', minute: '2-digit' });
+    document.getElementById('date').textContent = d.toLocaleDateString('en-AU', { weekday: 'long', day: 'numeric', month: 'long' });
+    document.getElementById('greet').textContent = h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening';
+  }
+  tick(); setInterval(tick, 10000);
 })();
 </script>
 </body>
