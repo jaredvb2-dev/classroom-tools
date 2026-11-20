@@ -118,7 +118,7 @@
     about    one short line saying what it does
     href     the file name you uploaded, or a full web address for a tool hosted somewhere else
     updated  when you last uploaded a new copy, so you always know you have the newest one
-    icon     one of: slides, camera, test, rubric, diary, tool
+    icon     one of: slides, camera, test, rubric, diary, door, tool
     accent   the tile's glow colour
 */
 var TOOLS = [
@@ -130,6 +130,8 @@ var TOOLS = [
     href: 'maths-printer.html', updated: '4 Nov 2026', icon: 'test', accent: '#ffb547' },
   { name: 'Rubric Marker', about: 'Build or load a rubric, mark each student, then download PDF feedback or a marks spreadsheet.',
     href: 'rubric-marker.html', updated: '4 Nov 2026', icon: 'rubric', accent: '#a78bfa' },
+  { name: 'Toilet Pass', about: 'Sign a pair out to the toilet and back in. Each trip is logged to your Google Sheet.',
+    href: 'toilet-pass.html', updated: '20 Nov 2026', icon: 'door', accent: '#38bdf8' },
   { name: 'Teaching Diary', about: 'Note how each lesson went, ready for writing up programs at the end of term.',
     href: 'https://bit.ly/gvpsdiary', updated: 'Google Apps Script', icon: 'diary', accent: '#34d399' }
 ];
@@ -140,6 +142,7 @@ var ICONS = {
   test: '<path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 12h7M9 16h5"/>',
   rubric: '<rect x="3" y="4" width="18" height="16" rx="1.5"/><path d="M3 9h18M3 14h18M9 4v16M15 4v16"/>',
   diary: '<path d="M5 4h11a3 3 0 013 3v13H8a3 3 0 01-3-3z"/><path d="M5 17a3 3 0 013-3h11M9 8h6"/>',
+  door: '<path d="M6 21V4a1 1 0 011-1h10a1 1 0 011 1v17M3 21h18"/><circle cx="14.5" cy="12.5" r="1"/>',
   tool: '<rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/>'
 };
 var ARROW = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';

@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Toilet Pass</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23111'/%3E%3Cpath d='M11 6h10v20H11z' fill='none' stroke='%23fff' stroke-width='2.4'/%3E%3Ccircle cx='18' cy='16.5' r='1.6' fill='%23fff'/%3E%3C/svg%3E">
+<style>
+  :root {
+    --font: 'Century Gothic', 'CenturyGothic', AppleGothic, 'Gill Sans', 'Trebuchet MS', sans-serif;
+    --bg: #ffffff; --ink: #111111; --sub: #555555; --line: #d4d4d4; --soft: #f3f3f3;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--ink); font-family: var(--font); }
+  button, input, select, textarea { font: inherit; color: inherit; }
+  button { cursor: pointer; }
+
+  #app { display: flex; flex-direction: column; height: 100%; min-height: 100vh; max-width: 900px; margin: 0 auto; }
+  body.mini #app { max-width: none; }
+
+  /* ---------- Top bar ---------- */
+  .bar { display: flex; align-items: center; gap: 8px; padding: 10px 12px; border-bottom: 2px solid var(--ink); }
+  .bar select { flex: 1; min-width: 0; padding: 8px 10px; border: 2px solid var(--ink); border-radius: 10px; background: var(--bg); font-weight: bold; font-size: 16px; }
+  .icon-btn { flex: none; width: 42px; height: 42px; display: grid; place-items: center; border: 2px solid var(--ink); border-radius: 10px; background: var(--bg); }
+  .icon-btn svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .icon-btn:hover, .icon-btn:focus-visible { background: var(--ink); color: var(--bg); }
+
+  main { flex: 1; overflow: auto; padding: 16px; display: flex; flex-direction: column; }
+
+  /* ---------- Home ---------- */
+  .home { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px; text-align: center; }
+  .big { width: 100%; max-width: 460px; padding: 28px 20px; border: 3px solid var(--ink); border-radius: 22px; background: var(--ink); color: var(--bg);
+    font-size: clamp(26px, 7vw, 44px); font-weight: bold; letter-spacing: .02em; display: flex; align-items: center; justify-content: center; gap: 14px; }
+  .big svg { width: 1.1em; height: 1.1em; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+  .big:hover, .big:focus-visible { background: #333; }
+  .big.light { background: var(--bg); color: var(--ink); }
+  .big.light:hover, .big.light:focus-visible { background: var(--soft); }
+  .hint { color: var(--sub); font-size: 14px; margin: 0; }
+  .out-label { font-size: 13px; letter-spacing: .16em; text-transform: uppercase; color: var(--sub); margin: 0; }
+  .out-names { font-size: clamp(28px, 8vw, 52px); font-weight: bold; line-height: 1.15; margin: 0; word-break: break-word; }
+  .linkish { border: 0; background: none; color: var(--sub); text-decoration: underline; font-size: 14px; padding: 6px; }
+  .linkish:hover { color: var(--ink); }
+
+  /* ---------- Name picker ---------- */
+  .pick-head { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+  .pick-head h2 { margin: 0; font-size: 22px; flex: 1; }
+  .names { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 8px; }
+  .name { padding: 14px 8px; border: 2px solid var(--ink); border-radius: 12px; background: var(--bg); font-size: 17px; font-weight: bold; word-break: break-word; }
+  .name:hover, .name:focus-visible { background: var(--ink); color: var(--bg); }
+  .name.alone { grid-column: 1 / -1; border-style: dashed; font-weight: normal; }
+
+  /* ---------- Status line ---------- */
+  .status { padding: 8px 12px; border-top: 1px solid var(--line); font-size: 13px; color: var(--sub); display: flex; gap: 8px; align-items: center; justify-content: space-between; }
+  .status b { color: var(--ink); }
+  .status .retry { border: 1px solid var(--ink); border-radius: 8px; background: var(--bg); padding: 3px 10px; font-size: 13px; }
+
+  /* ---------- Settings ---------- */
+  .settings h2 { margin: 0; font-size: 24px; }
+  .settings section { border: 2px solid var(--ink); border-radius: 14px; padding: 16px; margin-top: 16px; }
+  .settings h3 { margin: 0 0 10px; font-size: 18px; }
+  .settings p { margin: 0 0 10px; line-height: 1.45; }
+  .settings label { display: block; font-weight: bold; font-size: 14px; margin: 12px 0 4px; }
+  .settings input[type=text], .settings input[type=url], .settings textarea, .settings select {
+    width: 100%; padding: 9px 10px; border: 2px solid var(--ink); border-radius: 10px; background: var(--bg); font-size: 15px; }
+  .settings textarea { min-height: 220px; resize: vertical; line-height: 1.4; }
+  .settings .small { font-size: 13px; color: var(--sub); font-weight: normal; }
+  .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-top: 12px; }
+  .btn { padding: 9px 16px; border: 2px solid var(--ink); border-radius: 10px; background: var(--bg); font-weight: bold; font-size: 15px; }
+  .btn:hover, .btn:focus-visible { background: var(--soft); }
+  .btn.dark { background: var(--ink); color: var(--bg); }
+  .btn.dark:hover, .btn.dark:focus-visible { background: #333; }
+  .btn.danger { border-style: dashed; }
+  .class-list { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip { padding: 7px 12px; border: 2px solid var(--ink); border-radius: 999px; background: var(--bg); font-size: 14px; font-weight: bold; }
+  .chip.on { background: var(--ink); color: var(--bg); }
+  .msg { margin-top: 10px; padding: 10px 12px; border-radius: 10px; background: var(--soft); font-size: 14px; line-height: 1.4; }
+  .msg:empty { display: none; }
+  details summary { cursor: pointer; font-weight: bold; font-size: 18px; }
+  details[open] summary { margin-bottom: 10px; }
+  ol.steps { padding-left: 22px; margin: 0 0 10px; line-height: 1.55; }
+  ol.steps li { margin-bottom: 6px; }
+  pre.code { max-height: 220px; overflow: auto; background: var(--soft); border: 1px solid var(--line); border-radius: 10px; padding: 10px; font-size: 12px; white-space: pre; }
+  .settings .done-bar { position: sticky; bottom: -16px; background: var(--bg); padding: 12px 0; margin-top: 16px; border-top: 1px solid var(--line); }
+  kbd { border: 1px solid var(--ink); border-radius: 4px; padding: 0 5px; font-family: var(--font); font-size: 13px; }
+
+  body.mini .bar { padding: 8px; }
+  body.mini main { padding: 12px; }
+  body.mini .big { padding: 20px 14px; }
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+(function () {
+  'use strict';
+
+  /* =====================================================================
+     STORAGE
+     Everything lives in this browser's local storage on this computer.
+     ===================================================================== */
+  var STORE = 'toiletPass.v1';
+
+  function randomKey() {
+    var a = new Uint8Array(12);
+    (window.crypto || window.msCrypto).getRandomValues(a);
+    return Array.prototype.map.call(a, function (b) { return ('0' + b.toString(16)).slice(-2); }).join('');
+  }
+  function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
+
+  function blankState() {
+    return {
+      classes: [],                 // [{ id, name, students: [], sheetUrl: '' }]
+      currentId: null,
+      settings: { sheetUrl: '', webAppUrl: '', key: randomKey() },
+      out: {},                     // classId -> { id, student, partner, outAt }
+      queue: []                    // entries waiting to be written to the Sheet
+    };
+  }
+
+  function load() {
+    try {
+      var raw = localStorage.getItem(STORE);
+      if (raw) {
+        var s = JSON.parse(raw), b = blankState();
+        s.classes = Array.isArray(s.classes) ? s.classes : [];
+        s.settings = Object.assign(b.settings, s.settings || {});
+        s.out = s.out || {};
+        s.queue = Array.isArray(s.queue) ? s.queue : [];
+        return s;
+      }
+    } catch (e) { /* storage blocked or damaged: start fresh */ }
+    return blankState();
+  }
+  function save() {
+    try { localStorage.setItem(STORE, JSON.stringify(state)); } catch (e) { /* ignore */ }
+  }
+
+  var state = load();
+  save();
+
+  /* =====================================================================
+     HELPERS
+     ===================================================================== */
+  var root = document.getElementById('app');
+  var isMini = /[?&]mini=1/.test(location.search);
+  if (isMini) document.body.className = 'mini';
+  var view = 'home';            // home | pickStudent | pickPartner | settings
+  var pending = null;           // { student } while choosing a partner
+  var editId = null;            // class being edited in settings
+  var confirmDelete = false;
+  var sync = { busy: false, error: '', lastOk: '', inflight: null };
+
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+  function $(sel) { return root.querySelector(sel); }
+  function pad(n) { return (n < 10 ? '0' : '') + n; }
+  function isoDate(d) { return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); }
+  function isoTime(d) { return pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds()); }
+  function shortTime(d) { return d.toLocaleTimeString('en-AU', { hour: 'numeric', minute: '2-digit' }); }
+
+  function currentClass() {
+    var c = null;
+    state.classes.forEach(function (k) { if (k.id === state.currentId) c = k; });
+    if (!c && state.classes.length) { c = state.classes[0]; state.currentId = c.id; }
+    return c;
+  }
+  function classById(id) {
+    for (var i = 0; i < state.classes.length; i++) if (state.classes[i].id === id) return state.classes[i];
+    return null;
+  }
+  function parseNames(text) {
+    var seen = {}, out = [];
+    String(text || '').split(/\r?\n|\t/).forEach(function (n) {
+      n = n.replace(/\s+/g, ' ').trim();
+      if (n && !seen[n.toLowerCase()]) { seen[n.toLowerCase()] = 1; out.push(n); }
+    });
+    return out;
+  }
+  function looksLikeSheet(url) { return /docs\.google\.com\/spreadsheets\/d\/[\w-]+/.test(url || ''); }
+  function looksLikeWebApp(url) { return /^https:\/\/script\.google(usercontent)?\.com\/.+/.test(url || ''); }
+
+  var ICON = {
+    door: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 21V4a1 1 0 011-1h10a1 1 0 011 1v17M3 21h18"/><circle cx="14.5" cy="12.5" r="1"/></svg>',
+    back: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>',
+    gear: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 110 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>',
+    popout: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><rect x="12" y="11" width="7" height="6" rx="1"/></svg>',
+    close: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>',
+    left: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>'
+  };
+
+  /* =====================================================================
+     RENDER
+     ===================================================================== */
+  function render() {
+    var c = currentClass();
+    var html = '';
+
+    if (view === 'settings') {
+      html = renderSettings();
+    } else {
+      // top bar
+      html += '<div class="bar">';
+      if (state.classes.length) {
+        html += '<select data-change="class" aria-label="Class">';
+        state.classes.forEach(function (k) {
+          var flag = state.out[k.id] && k.id !== state.currentId ? ' (pair still out)' : '';
+          html += '<option value="' + esc(k.id) + '"' + (c && k.id === c.id ? ' selected' : '') + '>' + esc(k.name) + flag + '</option>';
+        });
+        html += '</select>';
+      } else {
+        html += '<div style="flex:1;font-weight:bold">Toilet Pass</div>';
+      }
+      if (!pipWin && !isMini) html += '<button class="icon-btn" data-act="popout" title="Pop out a small window that stays on top">' + ICON.popout + '</button>';
+      html += '<button class="icon-btn" data-act="settings" title="Settings">' + ICON.gear + '</button>';
+      html += '</div><main>';
+
+      if (!c) {
+        html += '<div class="home"><p class="out-names" style="font-size:26px">Add a class to get started</p>' +
+          '<button class="big light" data-act="settings">Add a class list</button></div>';
+      } else if (view === 'pickStudent') {
+        html += '<div class="pick-head"><button class="icon-btn" data-act="home" title="Back">' + ICON.left + '</button><h2>Who is going?</h2></div>';
+        html += '<div class="names">';
+        c.students.forEach(function (n, i) { html += '<button class="name" data-act="student" data-i="' + i + '">' + esc(n) + '</button>'; });
+        html += '</div>';
+        if (!c.students.length) html += '<p class="hint">This class has no names yet. Add them in Settings.</p>';
+      } else if (view === 'pickPartner' && pending) {
+        html += '<div class="pick-head"><button class="icon-btn" data-act="pickStudent" title="Back">' + ICON.left + '</button><h2>Who is going with ' + esc(pending.student) + '?</h2></div>';
+        html += '<div class="names">';
+        c.students.forEach(function (n, i) {
+          if (n !== pending.student) html += '<button class="name" data-act="partner" data-i="' + i + '">' + esc(n) + '</button>';
+        });
+        html += '<button class="name alone" data-act="alone">No partner</button></div>';
+      } else {
+        var o = state.out[c.id];
+        html += '<div class="home">';
+        if (o) {
+          html += '<p class="out-label">Out of class</p>' +
+            '<p class="out-names">' + esc(o.student) + (o.partner ? '<br>&amp; ' + esc(o.partner) : '') + '</p>' +
+            '<button class="big" data-act="return">' + ICON.back + ' Back in class</button>' +
+            '<button class="linkish" data-act="cancel">Picked the wrong name? Cancel this trip</button>';
+        } else {
+          html += '<button class="big" data-act="pickStudent">' + ICON.door + ' Toilet</button>' +
+            '<p class="hint">One pair out at a time</p>';
+        }
+        html += '</div>';
+      }
+      html += '</main>' + renderStatus();
+    }
+
+    root.innerHTML = html;
+  }
+
+  function renderStatus() {
+    var s = state.settings, n = state.queue.length, txt, btn = '';
+    if (!s.webAppUrl || !s.key) {
+      txt = 'Not linked to Google Sheets yet. Open <b>Settings</b> to connect.' + (n ? ' (' + n + ' waiting)' : '');
+    } else if (sync.busy) {
+      txt = 'Saving to Google Sheet…';
+    } else if (sync.error) {
+      txt = '<b>Not saved yet:</b> ' + esc(sync.error) + (n ? ' (' + n + ' waiting, kept on this computer)' : '');
+      btn = '<button class="retry" data-act="retry">Try again</button>';
+    } else if (n) {
+      txt = n + ' waiting to save…';
+      btn = '<button class="retry" data-act="retry">Try again</button>';
+    } else {
+      txt = sync.lastOk ? 'Saved to Google Sheet at ' + esc(sync.lastOk) : 'Linked to Google Sheet';
+    }
+    return '<div class="status"><span>' + txt + '</span>' + btn + '</div>';
+  }
+
+  function renderSettings() {
+    var s = state.settings;
+    var ed = classById(editId);
+    var h = '<main class="settings">';
+    h += '<div class="pick-head"><h2>Settings</h2><button class="btn dark" data-act="home">Done</button></div>';
+
+    /* ---- Classes ---- */
+    h += '<section><h3>1. Classes</h3>';
+    h += '<p>Pick a class to edit it, or add a new one. Paste names one per line (you can copy a column straight from a spreadsheet).</p>';
+    h += '<div class="class-list">';
+    state.classes.forEach(function (k) {
+      h += '<button class="chip' + (ed && ed.id === k.id ? ' on' : '') + '" data-act="editClass" data-id="' + esc(k.id) + '">' + esc(k.name) + ' (' + k.students.length + ')</button>';
+    });
+    h += '<button class="chip" data-act="newClass" style="border-style:dashed">+ Add class</button></div>';
+
+    if (ed) {
+      h += '<label for="cName">Class name <span class="small">(this also names the tab in your Sheet)</span></label>' +
+        '<input type="text" id="cName" value="' + esc(ed.name) + '" maxlength="60">' +
+        '<label for="cNames">Student names <span class="small">(one per line)</span></label>' +
+        '<textarea id="cNames" spellcheck="false">' + esc(ed.students.join('\n')) + '</textarea>' +
+        '<label for="cSheet">Different Google Sheet for this class <span class="small">(optional: leave blank to use the main Sheet below)</span></label>' +
+        '<input type="url" id="cSheet" placeholder="https://docs.google.com/spreadsheets/d/…" value="' + esc(ed.sheetUrl || '') + '">' +
+        '<div class="row"><button class="btn dark" data-act="saveClass">Save class</button>' +
+        '<button class="btn" data-act="sortClass">Sort A–Z</button>' +
+        '<button class="btn danger" data-act="deleteClass">' + (confirmDelete ? 'Click again to delete' : 'Delete class') + '</button></div>' +
+        '<div class="msg" id="classMsg"></div>';
+    }
+    h += '</section>';
+
+    /* ---- Sheet ---- */
+    h += '<section><h3>2. Google Sheet</h3>';
+    h += '<p>Make a new Google Sheet (or open one you want to use), copy the link from the address bar, and paste it here. Each class gets its own tab in it, made automatically.</p>';
+    h += '<label for="sheetUrl">Google Sheet link</label>' +
+      '<input type="url" id="sheetUrl" placeholder="https://docs.google.com/spreadsheets/d/…" value="' + esc(s.sheetUrl) + '">';
+    h += '<div class="row"><button class="btn dark" data-act="saveSheet">Save &amp; test</button></div><div class="msg" id="sheetMsg"></div></section>';
+
+    /* ---- Connector ---- */
+    var linked = s.webAppUrl && s.key;
+    h += '<section><details' + (linked ? '' : ' open') + '><summary>3. Google connector ' + (linked ? '(set up ✓)' : '(one-time setup)') + '</summary>';
+    h += '<p>A web page can’t write to Google Sheets by itself, so this small script runs in <b>your</b> Google account and does the writing. You only do this once per computer.</p>';
+    h += '<ol class="steps">' +
+      '<li>Open <a href="https://script.google.com/home/projects/create" target="_blank" rel="noopener">script.google.com → New project</a> (signed in with the account that owns your Sheet).</li>' +
+      '<li>Delete everything in the editor, then click <b>Copy script</b> below and paste it in. Click the save icon and name the project “Toilet Pass”.</li>' +
+      '<li>Click <b>Deploy → New deployment</b>. Click the gear next to “Select type” and choose <b>Web app</b>.</li>' +
+      '<li>Set <b>Execute as: Me</b> and <b>Who has access: Anyone</b>, then click <b>Deploy</b>.</li>' +
+      '<li>Google asks for permission. Click <b>Authorize access</b> and choose your account. If you see “Google hasn’t verified this app”, click <b>Advanced → Go to Toilet Pass</b>. That warning appears because it’s your own script, not a published app.</li>' +
+      '<li>Copy the <b>Web app URL</b> (it ends in <kbd>/exec</kbd>) and paste it below.</li></ol>';
+    h += '<div class="row" style="margin-top:0"><button class="btn dark" data-act="copyScript">Copy script</button><span class="small" id="copyMsg"></span></div>';
+    h += '<pre class="code" id="scriptCode">' + esc(connectorScript(s.key)) + '</pre>';
+    h += '<label for="webAppUrl">Web app URL</label>' +
+      '<input type="url" id="webAppUrl" placeholder="https://script.google.com/macros/s/…/exec" value="' + esc(s.webAppUrl) + '">' +
+      '<label for="key">Secret key <span class="small">(already in the script above. On another computer, type the key from your script here.)</span></label>' +
+      '<input type="text" id="key" value="' + esc(s.key) + '" spellcheck="false">';
+    h += '<div class="row"><button class="btn dark" data-act="saveConnector">Save &amp; test</button></div><div class="msg" id="connMsg"></div>';
+    h += '</details></section>';
+
+    /* ---- Backup ---- */
+    h += '<section><h3>4. Move to another computer</h3>' +
+      '<p>Your class lists and links are stored in this browser only. Download a backup file to load them on another computer or browser.</p>' +
+      '<div class="row"><button class="btn" data-act="export">Download backup</button>' +
+      '<button class="btn" data-act="import">Load backup</button>' +
+      '<input type="file" id="importFile" accept=".json,application/json" hidden></div><div class="msg" id="backupMsg"></div></section>';
+
+    h += '<div class="done-bar"><button class="btn dark" data-act="home">Done</button></div>';
+    h += '</main>';
+    return h;
+  }
+
+  /* =====================================================================
+     ACTIONS
+     ===================================================================== */
+  root.addEventListener('click', function (e) {
+    var b = e.target.closest('[data-act]');
+    if (!b || !root.contains(b)) return;
+    var act = b.getAttribute('data-act'), c = currentClass();
+
+    switch (act) {
+      case 'home': view = 'home'; pending = null; confirmDelete = false; render(); break;
+      case 'settings':
+        view = 'settings'; editId = c ? c.id : null; confirmDelete = false;
+        if (!state.classes.length) newClass();
+        render(); break;
+      case 'pickStudent': view = 'pickStudent'; pending = null; render(); break;
+      case 'student':
+        pending = { student: c.students[+b.getAttribute('data-i')] };
+        view = 'pickPartner'; render(); break;
+      case 'partner': startTrip(c, pending.student, c.students[+b.getAttribute('data-i')]); break;
+      case 'alone': startTrip(c, pending.student, ''); break;
+      case 'return': endTrip(c); break;
+      case 'cancel': cancelTrip(c); break;
+      case 'retry': sync.error = ''; flush(); break;
+      case 'popout': popOut(); break;
+
+      case 'newClass': newClass(); render(); focusLater('#cName'); break;
+      case 'editClass': editId = b.getAttribute('data-id'); confirmDelete = false; render(); break;
+      case 'saveClass': saveClass(); break;
+      case 'sortClass': {
+        var ta = $('#cNames');
+        ta.value = parseNames(ta.value).sort(function (a, z) { return a.localeCompare(z); }).join('\n');
+        break;
+      }
+      case 'deleteClass': deleteClass(); break;
+      case 'saveSheet': saveSheet(); break;
+      case 'saveConnector': saveConnector(); break;
+      case 'copyScript': copyScript(); break;
+      case 'export': exportBackup(); break;
+      case 'import': $('#importFile').click(); break;
+    }
+  });
+
+  root.addEventListener('change', function (e) {
+    var t = e.target;
+    if (t.getAttribute('data-change') === 'class') {
+      state.currentId = t.value; view = 'home'; pending = null; save(); render();
+    } else if (t.id === 'importFile' && t.files && t.files[0]) {
+      importBackup(t.files[0]);
+    }
+  });
+
+  function focusLater(sel) { setTimeout(function () { var el = $(sel); if (el) el.focus(); }, 0); }
+  function setMsg(id, text) { var el = $('#' + id); if (el) el.innerHTML = text; }
+
+  /* ---- Trips ---- */
+  function tripPayload(action, c, trip, backAt) {
+    var outD = new Date(trip.outAt);
+    var p = {
+      action: action, id: trip.id, classId: c.id, className: c.name,
+      student: trip.student, partner: trip.partner || '',
+      date: isoDate(outD), timeOut: isoTime(outD), timeBack: '', minutes: ''
+    };
+    if (backAt) {
+      var bd = new Date(backAt);
+      p.timeBack = isoTime(bd);
+      p.minutes = Math.max(0, Math.round((backAt - trip.outAt) / 60000));
+    }
+    return p;
+  }
+
+  function startTrip(c, student, partner) {
+    if (!c || state.out[c.id]) { view = 'home'; render(); return; }
+    var trip = { id: uid(), student: student, partner: partner, outAt: Date.now() };
+    state.out[c.id] = trip;
+    state.queue.push(tripPayload('out', c, trip));
+    view = 'home'; pending = null;
+    save(); render(); flush();
+  }
+
+  function endTrip(c) {
+    var trip = c && state.out[c.id];
+    if (!trip) return;
+    state.queue.push(tripPayload('back', c, trip, Date.now()));
+    delete state.out[c.id];
+    save(); render(); flush();
+  }
+
+  function cancelTrip(c) {
+    var trip = c && state.out[c.id];
+    if (!trip) return;
+    // If the "out" entry hasn't been sent yet, just drop it; otherwise ask the Sheet to remove the row.
+    var sending = sync.inflight === trip.id;
+    var before = state.queue.length;
+    state.queue = state.queue.filter(function (q) { return q.id !== trip.id || (sending && q === state.queue[0]); });
+    if (sending || state.queue.length === before) state.queue.push(tripPayload('cancel', c, trip));
+    delete state.out[c.id];
+    save(); render(); flush();
+  }
+
+  /* ---- Classes ---- */
+  function newClass() {
+    var k = { id: uid(), name: 'New class', students: [], sheetUrl: '' };
+    state.classes.push(k);
+    editId = k.id;
+    if (!state.currentId) state.currentId = k.id;
+    confirmDelete = false;
+    save();
+  }
+
+  function saveClass() {
+    var k = classById(editId); if (!k) return;
+    var name = $('#cName').value.replace(/\s+/g, ' ').trim();
+    var names = parseNames($('#cNames').value);
+    var sheet = $('#cSheet').value.trim();
+    if (!name) { setMsg('classMsg', 'Please give the class a name.'); return; }
+    var clash = state.classes.some(function (o) { return o.id !== k.id && o.name.toLowerCase() === name.toLowerCase(); });
+    if (clash) { setMsg('classMsg', 'Another class already has that name. Each class needs its own name so it gets its own tab.'); return; }
+    if (sheet && !looksLikeSheet(sheet)) { setMsg('classMsg', 'That doesn’t look like a Google Sheet link. It should start with https://docs.google.com/spreadsheets/d/…'); return; }
+    k.name = name; k.students = names; k.sheetUrl = sheet;
+    state.currentId = k.id;
+    save(); render();
+    setMsg('classMsg', 'Saved ' + esc(name) + ' with ' + names.length + ' student' + (names.length === 1 ? '' : 's') + '.');
+  }
+
+  function deleteClass() {
+    if (!confirmDelete) { confirmDelete = true; render(); return; }
+    state.classes = state.classes.filter(function (k) { return k.id !== editId; });
+    delete state.out[editId];
+    if (state.currentId === editId) state.currentId = state.classes.length ? state.classes[0].id : null;
+    editId = state.currentId; confirmDelete = false;
+    save(); render();
+  }
+
+  /* ---- Connection ---- */
+  // Both "Save & test" buttons save every link field, so nothing typed is lost.
+  function saveLinks(msgId) {
+    var sheet = $('#sheetUrl').value.trim();
+    var url = $('#webAppUrl').value.trim(), key = $('#key').value.trim();
+    if (sheet && !looksLikeSheet(sheet)) { setMsg(msgId, 'That doesn’t look like a Google Sheet link. Open your Sheet and copy the whole address. It should start with https://docs.google.com/spreadsheets/d/…'); return; }
+    if (url && !looksLikeWebApp(url)) { setMsg(msgId, 'That doesn’t look like a Web app URL. It should start with https://script.google.com/macros/s/… and end in /exec'); return; }
+    if (!key) { setMsg(msgId, 'The secret key can’t be blank.'); return; }
+    if (key !== state.settings.key) { var pre = $('#scriptCode'); if (pre) pre.textContent = connectorScript(key); }
+    state.settings.sheetUrl = sheet; state.settings.webAppUrl = url; state.settings.key = key;
+    save();
+    testConnection(msgId);
+  }
+  function saveSheet() { saveLinks('sheetMsg'); }
+  function saveConnector() { saveLinks('connMsg'); }
+
+  function testConnection(msgId) {
+    var s = state.settings;
+    if (!s.webAppUrl) { setMsg(msgId, 'Saved. Next, finish the Google connector setup (step 3).'); return; }
+    if (!s.sheetUrl) { setMsg(msgId, 'Saved. Next, paste your Google Sheet link (step 2).'); return; }
+    setMsg(msgId, 'Testing…');
+    send({ action: 'ping', sheetUrl: s.sheetUrl }).then(function (r) {
+      setMsg(msgId, 'Connected ✓. Entries will go to <b>' + esc(r.name || 'your Sheet') + '</b>.');
+      sync.error = ''; flush();
+    }, function (err) {
+      setMsg(msgId, '<b>Couldn’t connect:</b> ' + esc(err.message));
+    });
+  }
+
+  function copyScript() {
+    var text = connectorScript(state.settings.key);
+    var done = function () { setMsg('copyMsg', 'Copied ✓'); };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(done, fallback);
+    } else fallback();
+    function fallback() {
+      var ta = document.createElement('textarea'); ta.value = text; root.appendChild(ta); ta.select();
+      try { (root.ownerDocument || document).execCommand('copy'); done(); } catch (e) { setMsg('copyMsg', 'Select the script below and copy it.'); }
+      ta.remove();
+    }
+  }
+
+  /* ---- Backup ---- */
+  function exportBackup() {
+    var data = { app: 'toilet-pass', version: 1, classes: state.classes, settings: state.settings };
+    var blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob); a.download = 'toilet-pass-backup.json';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function () { URL.revokeObjectURL(a.href); }, 2000);
+    setMsg('backupMsg', 'Backup downloaded. It contains student names, so keep it somewhere private.');
+  }
+
+  function importBackup(file) {
+    var r = new FileReader();
+    r.onload = function () {
+      try {
+        var d = JSON.parse(r.result);
+        if (d.app !== 'toilet-pass' || !Array.isArray(d.classes)) throw new Error('bad');
+        state.classes = d.classes.map(function (k) {
+          return { id: String(k.id || uid()), name: String(k.name || 'Class'), students: parseNames((k.students || []).join('\n')), sheetUrl: String(k.sheetUrl || '') };
+        });
+        state.settings = Object.assign(state.settings, d.settings || {});
+        state.currentId = state.classes.length ? state.classes[0].id : null;
+        editId = state.currentId;
+        save(); render();
+        setMsg('backupMsg', 'Loaded ' + state.classes.length + ' class' + (state.classes.length === 1 ? '' : 'es') + '.');
+        flush();
+      } catch (e) { setMsg('backupMsg', 'That file isn’t a Toilet Pass backup.'); }
+    };
+    r.readAsText(file);
+  }
+
+  /* =====================================================================
+     SENDING TO GOOGLE SHEETS
+     Entries wait in a queue (saved on this computer) and are sent in order.
+     If the internet drops, they are sent when it comes back.
+     ===================================================================== */
+  function send(body) {
+    var s = state.settings;
+    body.key = s.key;
+    return fetch(s.webAppUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },   // keeps it a "simple" request Google accepts
+      body: JSON.stringify(body),
+      redirect: 'follow'
+    }).then(function (res) {
+      return res.text().then(function (t) {
+        var j;
+        try { j = JSON.parse(t); } catch (e) {
+          throw new Error('Google sent back an unexpected page. Check the Web app is deployed with “Who has access: Anyone”.');
+        }
+        if (!j.ok) throw new Error(j.error || 'Unknown error from the connector.');
+        return j;
+      });
+    }, function () {
+      throw new Error(navigator.onLine === false ? 'No internet connection.' : 'Couldn’t reach Google. Check the Web app URL and your internet.');
+    });
+  }
+
+  var retryTimer = null;
+  function flush() {
+    var s = state.settings;
+    if (sync.busy || !state.queue.length || !s.webAppUrl || !s.key) { refreshStatus(); return; }
+    var item = state.queue[0];
+    sync.busy = true; sync.inflight = item.id; refreshStatus();
+    var k = classById(item.classId);
+    var sheetUrl = (k && k.sheetUrl) || s.sheetUrl;
+    if (!sheetUrl) { sync.busy = false; sync.inflight = null; sync.error = 'No Google Sheet link yet (Settings, step 2).'; refreshStatus(); return; }
+    var body = Object.assign({}, item, { sheetUrl: sheetUrl, className: k ? k.name : item.className });
+    send(body).then(function () {
+      state.queue = state.queue.filter(function (q) { return q !== item && !(q.id === item.id && q.action === item.action); });
+      save();
+      sync.busy = false; sync.inflight = null; sync.error = ''; sync.lastOk = shortTime(new Date());
+      flush();
+    }, function (err) {
+      sync.busy = false; sync.inflight = null; sync.error = err.message; refreshStatus();
+      clearTimeout(retryTimer);
+      retryTimer = setTimeout(function () { sync.error = ''; flush(); }, 30000);
+    });
+  }
+
+  function refreshStatus() {
+    var el = root.querySelector('.status');
+    if (el) el.outerHTML = renderStatus();
+  }
+
+  window.addEventListener('online', function () { sync.error = ''; flush(); });
+
+  // Keep several open tabs in step (for example the pop-up window fallback).
+  window.addEventListener('storage', function (e) {
+    if (e.key !== STORE) return;
+    state = load();
+    if (view !== 'settings') render();
+  });
+
+  /* =====================================================================
+     POP-OUT WINDOW
+     Chrome and Edge can open a small window that stays on top of everything
+     (Document Picture-in-Picture). Other browsers get a normal small window.
+     ===================================================================== */
+  var pipWin = null;
+
+  function popOut() {
+    if ('documentPictureInPicture' in window) {
+      window.documentPictureInPicture.requestWindow({ width: 380, height: 520 }).then(function (w) {
+        pipWin = w;
+        Array.prototype.forEach.call(document.querySelectorAll('style, link[rel=stylesheet]'), function (n) {
+          w.document.head.appendChild(n.cloneNode(true));
+        });
+        w.document.title = 'Toilet Pass';
+        w.document.body.className = 'mini';
+        w.document.body.appendChild(root);
+        document.body.innerHTML = '<div style="font-family:var(--font);padding:40px;text-align:center"><p style="font-size:22px;font-weight:bold">Toilet Pass is in the floating window.</p><p>Close the floating window to bring it back here.</p></div>';
+        render();
+        w.addEventListener('pagehide', function () {
+          pipWin = null;
+          document.body.innerHTML = '';
+          document.body.appendChild(root);
+          render();
+        });
+      }, function () { popupFallback(); });
+    } else {
+      popupFallback();
+    }
+  }
+
+  function popupFallback() {
+    var w = window.open(location.href.split('#')[0].split('?')[0] + '?mini=1', 'toiletPassMini',
+      'width=380,height=560,menubar=no,toolbar=no,location=no,status=no');
+    if (!w) alert('Your browser blocked the pop-up. Allow pop-ups for this page, or use Chrome or Edge for a window that stays on top.');
+  }
+
+
+
+  /* =====================================================================
+     THE CONNECTOR SCRIPT (pasted into Google Apps Script)
+     ===================================================================== */
+  function connectorScript(key) {
+    return [
+      '// Toilet Pass connector. Paste into a new Google Apps Script project,',
+      '// then Deploy > New deployment > Web app (Execute as: Me, Who has access: Anyone).',
+      '// The key below must match the one in the Toilet Pass settings.',
+      "const KEY = '" + String(key).replace(/[^\w-]/g, '') + "';",
+      "const HEADERS = ['Date', 'Student', 'Partner', 'Time Out', 'Time Back', 'Minutes Away', 'Trip ID'];",
+      '',
+      'function doPost(e) {',
+      '  try {',
+      '    const d = JSON.parse(e.postData.contents);',
+      "    if (d.key !== KEY) return reply({ ok: false, error: 'The secret key does not match. Copy the script again from Toilet Pass settings and redeploy.' });",
+      '    const ss = SpreadsheetApp.openByUrl(d.sheetUrl);',
+      "    if (d.action === 'ping') return reply({ ok: true, name: ss.getName() });",
+      '',
+      '    const lock = LockService.getScriptLock();',
+      '    lock.waitLock(20000);',
+      '    try {',
+      '      const sh = getTab(ss, d.className);',
+      '      const row = findRow(sh, d.id);',
+      "      if (d.action === 'cancel') {",
+      '        if (row) sh.deleteRow(row);',
+      '      } else if (!row) {',
+      "        sh.appendRow([d.date, d.student, d.partner || '', d.timeOut, d.timeBack || '', d.minutes === '' ? '' : Number(d.minutes), d.id]);",
+      '        formatRow(sh, sh.getLastRow());',
+      "      } else if (d.action === 'back') {",
+      '        sh.getRange(row, 5, 1, 2).setValues([[d.timeBack, Number(d.minutes)]]);',
+      '        formatRow(sh, row);',
+      '      }',
+      '    } finally {',
+      '      lock.releaseLock();',
+      '    }',
+      '    return reply({ ok: true });',
+      '  } catch (err) {',
+      '    return reply({ ok: false, error: String(err && err.message || err) });',
+      '  }',
+      '}',
+      '',
+      'function doGet() {',
+      "  return reply({ ok: true, message: 'Toilet Pass connector is running.' });",
+      '}',
+      '',
+      'function getTab(ss, name) {',
+      "  name = String(name || 'Class').replace(/[\\[\\]\\*\\?\\/\\\\:]/g, ' ').trim().slice(0, 90) || 'Class';",
+      '  let sh = ss.getSheetByName(name);',
+      '  if (!sh) {',
+      '    sh = ss.insertSheet(name);',
+      '    sh.getRange(1, 1, 1, HEADERS.length).setValues([HEADERS]).setFontWeight(\'bold\');',
+      '    sh.setFrozenRows(1);',
+      '    sh.setColumnWidths(1, 6, 130);',
+      '    sh.setColumnWidth(2, 170); sh.setColumnWidth(3, 170);',
+      '    sh.hideColumns(7);',
+      "    const blank = ss.getSheetByName('Sheet1');",
+      '    if (blank && blank.getLastRow() === 0 && ss.getSheets().length > 1) ss.deleteSheet(blank);',
+      '  }',
+      '  return sh;',
+      '}',
+      '',
+      'function findRow(sh, id) {',
+      '  if (!id || sh.getLastRow() < 2) return 0;',
+      '  const hit = sh.getRange(2, 7, sh.getLastRow() - 1, 1).createTextFinder(String(id)).matchEntireCell(true).findNext();',
+      '  return hit ? hit.getRow() : 0;',
+      '}',
+      '',
+      'function formatRow(sh, row) {',
+      "  sh.getRange(row, 1).setNumberFormat('ddd d mmm yyyy');",
+      "  sh.getRange(row, 4, 1, 2).setNumberFormat('h:mm am/pm');",
+      '}',
+      '',
+      'function reply(obj) {',
+      '  return ContentService.createTextOutput(JSON.stringify(obj)).setMimeType(ContentService.MimeType.JSON);',
+      '}',
+      ''
+    ].join('\n');
+  }
+
+  render();
+  flush();
+})();
+</script>
+</body>
+</html>
