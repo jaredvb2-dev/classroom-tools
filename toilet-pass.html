@@ -34,6 +34,8 @@
     font-size: clamp(26px, 7vw, 44px); font-weight: bold; letter-spacing: .02em; display: flex; align-items: center; justify-content: center; gap: 14px; }
   .big svg { width: 1.1em; height: 1.1em; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
   .big:hover, .big:focus-visible { background: #333; }
+  .big.icon-only { padding: 22px 20px; }
+  .big.icon-only svg.loo { width: clamp(84px, 24vw, 132px); height: clamp(84px, 24vw, 132px); stroke-width: 1.6; }
   .big.light { background: var(--bg); color: var(--ink); }
   .big.light:hover, .big.light:focus-visible { background: var(--soft); }
   .hint { color: var(--sub); font-size: 14px; margin: 0; }
@@ -80,7 +82,6 @@
   details[open] summary { margin-bottom: 10px; }
   ol.steps { padding-left: 22px; margin: 0 0 10px; line-height: 1.55; }
   ol.steps li { margin-bottom: 6px; }
-  pre.code { max-height: 220px; overflow: auto; background: var(--soft); border: 1px solid var(--line); border-radius: 10px; padding: 10px; font-size: 12px; white-space: pre; }
   .settings .done-bar { position: sticky; bottom: -16px; background: var(--bg); padding: 12px 0; margin-top: 16px; border-top: 1px solid var(--line); }
   kbd { border: 1px solid var(--ink); border-radius: 4px; padding: 0 5px; font-family: var(--font); font-size: 13px; }
 
@@ -97,23 +98,29 @@
   'use strict';
 
   /* =====================================================================
+     SCHOOL SETUP (done once by the person who deployed the Google connector)
+     WEB_APP_URL  the Web app URL from Apps Script (ends in /exec)
+     KEY          must match the KEY line in toilet-pass-connector.gs
+     Staff never need to change these.
+     ===================================================================== */
+  var CONFIG = {
+    WEB_APP_URL: '',
+    KEY: 'e8e5efaa70e253484909a21e'
+  };
+
+  /* =====================================================================
      STORAGE
      Everything lives in this browser's local storage on this computer.
      ===================================================================== */
   var STORE = 'toiletPass.v1';
 
-  function randomKey() {
-    var a = new Uint8Array(12);
-    (window.crypto || window.msCrypto).getRandomValues(a);
-    return Array.prototype.map.call(a, function (b) { return ('0' + b.toString(16)).slice(-2); }).join('');
-  }
   function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
 
   function blankState() {
     return {
-      classes: [],                 // [{ id, name, students: [], sheetUrl: '' }]
+      classes: [],                 // [{ id, name, students: [] }]
       currentId: null,
-      settings: { sheetUrl: '', webAppUrl: '', key: randomKey() },
+      settings: { teacher: '' },
       out: {},                     // classId -> { id, student, partner, outAt }
       queue: []                    // entries waiting to be written to the Sheet
     };
@@ -181,11 +188,11 @@
     });
     return out;
   }
-  function looksLikeSheet(url) { return /docs\.google\.com\/spreadsheets\/d\/[\w-]+/.test(url || ''); }
-  function looksLikeWebApp(url) { return /^https:\/\/script\.google(usercontent)?\.com\/.+/.test(url || ''); }
+  function linked() { return !!(CONFIG.WEB_APP_URL && CONFIG.KEY); }
+  function tabName(teacher, cls) { return (teacher ? teacher + ' – ' : '') + cls; }
 
   var ICON = {
-    door: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 21V4a1 1 0 011-1h10a1 1 0 011 1v17M3 21h18"/><circle cx="14.5" cy="12.5" r="1"/></svg>',
+    toilet: '<svg class="loo" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="2.5" width="7" height="8.5" rx="1.2"/><path d="M6.3 5.5h2.4"/><path d="M3 11h18c0 3.6-2.7 6.2-6.3 6.6L15.5 21.5h-7.3l.6-4.3C5.6 16.2 3 14 3 11z"/></svg>',
     back: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>',
     gear: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 110 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>',
     popout: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><rect x="12" y="11" width="7" height="6" rx="1"/></svg>',
@@ -219,9 +226,9 @@
       html += '<button class="icon-btn" data-act="settings" title="Settings">' + ICON.gear + '</button>';
       html += '</div><main>';
 
-      if (!c) {
-        html += '<div class="home"><p class="out-names" style="font-size:26px">Add a class to get started</p>' +
-          '<button class="big light" data-act="settings">Add a class list</button></div>';
+      if (!c || !state.settings.teacher) {
+        html += '<div class="home"><p class="out-names" style="font-size:26px">' + (state.settings.teacher ? 'Add a class to get started' : 'Add your name and class list to get started') + '</p>' +
+          '<button class="big light" data-act="settings">Set up</button></div>';
       } else if (view === 'pickStudent') {
         html += '<div class="pick-head"><button class="icon-btn" data-act="home" title="Back">' + ICON.left + '</button><h2>Who is going?</h2></div>';
         html += '<div class="names">';
@@ -244,7 +251,7 @@
             '<button class="big" data-act="return">' + ICON.back + ' Back in class</button>' +
             '<button class="linkish" data-act="cancel">Picked the wrong name? Cancel this trip</button>';
         } else {
-          html += '<button class="big" data-act="pickStudent">' + ICON.door + ' Toilet</button>' +
+          html += '<button class="big icon-only" data-act="pickStudent" aria-label="Toilet" title="Toilet">' + ICON.toilet + '</button>' +
             '<p class="hint">One pair out at a time</p>';
         }
         html += '</div>';
@@ -256,9 +263,9 @@
   }
 
   function renderStatus() {
-    var s = state.settings, n = state.queue.length, txt, btn = '';
-    if (!s.webAppUrl || !s.key) {
-      txt = 'Not linked to Google Sheets yet. Open <b>Settings</b> to connect.' + (n ? ' (' + n + ' waiting)' : '');
+    var n = state.queue.length, txt, btn = '';
+    if (!linked()) {
+      txt = 'Not linked to Google Sheets yet (the school setup isn’t finished). Trips are kept on this computer.' + (n ? ' (' + n + ' waiting)' : '');
     } else if (sync.busy) {
       txt = 'Saving to Google Sheet…';
     } else if (sync.error) {
@@ -279,8 +286,15 @@
     var h = '<main class="settings">';
     h += '<div class="pick-head"><h2>Settings</h2><button class="btn dark" data-act="home">Done</button></div>';
 
+    /* ---- Teacher ---- */
+    h += '<section><h3>1. Your name</h3>' +
+      '<p>Used to name your tabs in the school’s Toilet Pass Sheet, so your classes never mix with anyone else’s.</p>' +
+      '<label for="teacher">Your name <span class="small">(e.g. Mr Smith)</span></label>' +
+      '<input type="text" id="teacher" maxlength="40" value="' + esc(s.teacher) + '" placeholder="Mr Smith">' +
+      '<div class="row"><button class="btn dark" data-act="saveTeacher">Save name</button></div><div class="msg" id="teacherMsg"></div></section>';
+
     /* ---- Classes ---- */
-    h += '<section><h3>1. Classes</h3>';
+    h += '<section><h3>2. Classes</h3>';
     h += '<p>Pick a class to edit it, or add a new one. Paste names one per line (you can copy a column straight from a spreadsheet).</p>';
     h += '<div class="class-list">';
     state.classes.forEach(function (k) {
@@ -289,12 +303,10 @@
     h += '<button class="chip" data-act="newClass" style="border-style:dashed">+ Add class</button></div>';
 
     if (ed) {
-      h += '<label for="cName">Class name <span class="small">(this also names the tab in your Sheet)</span></label>' +
+      h += '<label for="cName">Class name <span class="small">(e.g. 5B. Your tab in the Sheet will be called “' + esc(tabName(s.teacher || 'Your name', ed.name)) + '”)</span></label>' +
         '<input type="text" id="cName" value="' + esc(ed.name) + '" maxlength="60">' +
         '<label for="cNames">Student names <span class="small">(one per line)</span></label>' +
         '<textarea id="cNames" spellcheck="false">' + esc(ed.students.join('\n')) + '</textarea>' +
-        '<label for="cSheet">Different Google Sheet for this class <span class="small">(optional: leave blank to use the main Sheet below)</span></label>' +
-        '<input type="url" id="cSheet" placeholder="https://docs.google.com/spreadsheets/d/…" value="' + esc(ed.sheetUrl || '') + '">' +
         '<div class="row"><button class="btn dark" data-act="saveClass">Save class</button>' +
         '<button class="btn" data-act="sortClass">Sort A–Z</button>' +
         '<button class="btn danger" data-act="deleteClass">' + (confirmDelete ? 'Click again to delete' : 'Delete class') + '</button></div>' +
@@ -302,36 +314,9 @@
     }
     h += '</section>';
 
-    /* ---- Sheet ---- */
-    h += '<section><h3>2. Google Sheet</h3>';
-    h += '<p>Make a new Google Sheet (or open one you want to use), copy the link from the address bar, and paste it here. Each class gets its own tab in it, made automatically.</p>';
-    h += '<label for="sheetUrl">Google Sheet link</label>' +
-      '<input type="url" id="sheetUrl" placeholder="https://docs.google.com/spreadsheets/d/…" value="' + esc(s.sheetUrl) + '">';
-    h += '<div class="row"><button class="btn dark" data-act="saveSheet">Save &amp; test</button></div><div class="msg" id="sheetMsg"></div></section>';
-
-    /* ---- Connector ---- */
-    var linked = s.webAppUrl && s.key;
-    h += '<section><details' + (linked ? '' : ' open') + '><summary>3. Google connector ' + (linked ? '(set up ✓)' : '(one-time setup)') + '</summary>';
-    h += '<p>A web page can’t write to Google Sheets by itself, so this small script runs in <b>your</b> Google account and does the writing. You only do this once per computer.</p>';
-    h += '<ol class="steps">' +
-      '<li>Open <a href="https://script.google.com/home/projects/create" target="_blank" rel="noopener">script.google.com → New project</a> (signed in with the account that owns your Sheet).</li>' +
-      '<li>Delete everything in the editor, then click <b>Copy script</b> below and paste it in. Click the save icon and name the project “Toilet Pass”.</li>' +
-      '<li>Click <b>Deploy → New deployment</b>. Click the gear next to “Select type” and choose <b>Web app</b>.</li>' +
-      '<li>Set <b>Execute as: Me</b> and <b>Who has access: Anyone</b>, then click <b>Deploy</b>.</li>' +
-      '<li>Google asks for permission. Click <b>Authorize access</b> and choose your account. If you see “Google hasn’t verified this app”, click <b>Advanced → Go to Toilet Pass</b>. That warning appears because it’s your own script, not a published app.</li>' +
-      '<li>Copy the <b>Web app URL</b> (it ends in <kbd>/exec</kbd>) and paste it below.</li></ol>';
-    h += '<div class="row" style="margin-top:0"><button class="btn dark" data-act="copyScript">Copy script</button><span class="small" id="copyMsg"></span></div>';
-    h += '<pre class="code" id="scriptCode">' + esc(connectorScript(s.key)) + '</pre>';
-    h += '<label for="webAppUrl">Web app URL</label>' +
-      '<input type="url" id="webAppUrl" placeholder="https://script.google.com/macros/s/…/exec" value="' + esc(s.webAppUrl) + '">' +
-      '<label for="key">Secret key <span class="small">(already in the script above. On another computer, type the key from your script here.)</span></label>' +
-      '<input type="text" id="key" value="' + esc(s.key) + '" spellcheck="false">';
-    h += '<div class="row"><button class="btn dark" data-act="saveConnector">Save &amp; test</button></div><div class="msg" id="connMsg"></div>';
-    h += '</details></section>';
-
     /* ---- Backup ---- */
-    h += '<section><h3>4. Move to another computer</h3>' +
-      '<p>Your class lists and links are stored in this browser only. Download a backup file to load them on another computer or browser.</p>' +
+    h += '<section><h3>3. Move to another computer</h3>' +
+      '<p>Your name and class lists are stored in this browser only. Download a backup file to load them on another computer or browser.</p>' +
       '<div class="row"><button class="btn" data-act="export">Download backup</button>' +
       '<button class="btn" data-act="import">Load backup</button>' +
       '<input type="file" id="importFile" accept=".json,application/json" hidden></div><div class="msg" id="backupMsg"></div></section>';
@@ -354,7 +339,7 @@
       case 'settings':
         view = 'settings'; editId = c ? c.id : null; confirmDelete = false;
         if (!state.classes.length) newClass();
-        render(); break;
+        render(); if (!state.settings.teacher) focusLater('#teacher'); break;
       case 'pickStudent': view = 'pickStudent'; pending = null; render(); break;
       case 'student':
         pending = { student: c.students[+b.getAttribute('data-i')] };
@@ -375,9 +360,7 @@
         break;
       }
       case 'deleteClass': deleteClass(); break;
-      case 'saveSheet': saveSheet(); break;
-      case 'saveConnector': saveConnector(); break;
-      case 'copyScript': copyScript(); break;
+      case 'saveTeacher': saveTeacher(); break;
       case 'export': exportBackup(); break;
       case 'import': $('#importFile').click(); break;
     }
@@ -399,7 +382,7 @@
   function tripPayload(action, c, trip, backAt) {
     var outD = new Date(trip.outAt);
     var p = {
-      action: action, id: trip.id, classId: c.id, className: c.name,
+      action: action, id: trip.id, classId: c.id, className: tabName(state.settings.teacher, c.name),
       student: trip.student, partner: trip.partner || '',
       date: isoDate(outD), timeOut: isoTime(outD), timeBack: '', minutes: ''
     };
@@ -442,7 +425,7 @@
 
   /* ---- Classes ---- */
   function newClass() {
-    var k = { id: uid(), name: 'New class', students: [], sheetUrl: '' };
+    var k = { id: uid(), name: 'New class', students: [] };
     state.classes.push(k);
     editId = k.id;
     if (!state.currentId) state.currentId = k.id;
@@ -454,12 +437,10 @@
     var k = classById(editId); if (!k) return;
     var name = $('#cName').value.replace(/\s+/g, ' ').trim();
     var names = parseNames($('#cNames').value);
-    var sheet = $('#cSheet').value.trim();
     if (!name) { setMsg('classMsg', 'Please give the class a name.'); return; }
     var clash = state.classes.some(function (o) { return o.id !== k.id && o.name.toLowerCase() === name.toLowerCase(); });
     if (clash) { setMsg('classMsg', 'Another class already has that name. Each class needs its own name so it gets its own tab.'); return; }
-    if (sheet && !looksLikeSheet(sheet)) { setMsg('classMsg', 'That doesn’t look like a Google Sheet link. It should start with https://docs.google.com/spreadsheets/d/…'); return; }
-    k.name = name; k.students = names; k.sheetUrl = sheet;
+    k.name = name; k.students = names;
     state.currentId = k.id;
     save(); render();
     setMsg('classMsg', 'Saved ' + esc(name) + ' with ' + names.length + ' student' + (names.length === 1 ? '' : 's') + '.');
@@ -474,51 +455,18 @@
     save(); render();
   }
 
-  /* ---- Connection ---- */
-  // Both "Save & test" buttons save every link field, so nothing typed is lost.
-  function saveLinks(msgId) {
-    var sheet = $('#sheetUrl').value.trim();
-    var url = $('#webAppUrl').value.trim(), key = $('#key').value.trim();
-    if (sheet && !looksLikeSheet(sheet)) { setMsg(msgId, 'That doesn’t look like a Google Sheet link. Open your Sheet and copy the whole address. It should start with https://docs.google.com/spreadsheets/d/…'); return; }
-    if (url && !looksLikeWebApp(url)) { setMsg(msgId, 'That doesn’t look like a Web app URL. It should start with https://script.google.com/macros/s/… and end in /exec'); return; }
-    if (!key) { setMsg(msgId, 'The secret key can’t be blank.'); return; }
-    if (key !== state.settings.key) { var pre = $('#scriptCode'); if (pre) pre.textContent = connectorScript(key); }
-    state.settings.sheetUrl = sheet; state.settings.webAppUrl = url; state.settings.key = key;
-    save();
-    testConnection(msgId);
-  }
-  function saveSheet() { saveLinks('sheetMsg'); }
-  function saveConnector() { saveLinks('connMsg'); }
-
-  function testConnection(msgId) {
-    var s = state.settings;
-    if (!s.webAppUrl) { setMsg(msgId, 'Saved. Next, finish the Google connector setup (step 3).'); return; }
-    if (!s.sheetUrl) { setMsg(msgId, 'Saved. Next, paste your Google Sheet link (step 2).'); return; }
-    setMsg(msgId, 'Testing…');
-    send({ action: 'ping', sheetUrl: s.sheetUrl }).then(function (r) {
-      setMsg(msgId, 'Connected ✓. Entries will go to <b>' + esc(r.name || 'your Sheet') + '</b>.');
-      sync.error = ''; flush();
-    }, function (err) {
-      setMsg(msgId, '<b>Couldn’t connect:</b> ' + esc(err.message));
-    });
-  }
-
-  function copyScript() {
-    var text = connectorScript(state.settings.key);
-    var done = function () { setMsg('copyMsg', 'Copied ✓'); };
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(text).then(done, fallback);
-    } else fallback();
-    function fallback() {
-      var ta = document.createElement('textarea'); ta.value = text; root.appendChild(ta); ta.select();
-      try { (root.ownerDocument || document).execCommand('copy'); done(); } catch (e) { setMsg('copyMsg', 'Select the script below and copy it.'); }
-      ta.remove();
-    }
+  /* ---- Teacher name ---- */
+  function saveTeacher() {
+    var t = $('#teacher').value.replace(/\s+/g, ' ').replace(/[\[\]\*\?\/\\:]/g, '').trim();
+    if (!t) { setMsg('teacherMsg', 'Please type your name.'); return; }
+    var changed = state.settings.teacher && state.settings.teacher !== t;
+    state.settings.teacher = t; save(); render();
+    setMsg('teacherMsg', 'Saved.' + (changed ? ' New trips will go to tabs starting with “' + esc(t) + '”. Earlier trips stay in the old tabs.' : ''));
   }
 
   /* ---- Backup ---- */
   function exportBackup() {
-    var data = { app: 'toilet-pass', version: 1, classes: state.classes, settings: state.settings };
+    var data = { app: 'toilet-pass', version: 2, teacher: state.settings.teacher, classes: state.classes };
     var blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
     var a = document.createElement('a');
     a.href = URL.createObjectURL(blob); a.download = 'toilet-pass-backup.json';
@@ -534,9 +482,9 @@
         var d = JSON.parse(r.result);
         if (d.app !== 'toilet-pass' || !Array.isArray(d.classes)) throw new Error('bad');
         state.classes = d.classes.map(function (k) {
-          return { id: String(k.id || uid()), name: String(k.name || 'Class'), students: parseNames((k.students || []).join('\n')), sheetUrl: String(k.sheetUrl || '') };
+          return { id: String(k.id || uid()), name: String(k.name || 'Class'), students: parseNames((k.students || []).join('\n')) };
         });
-        state.settings = Object.assign(state.settings, d.settings || {});
+        if (d.teacher) state.settings.teacher = String(d.teacher);
         state.currentId = state.classes.length ? state.classes[0].id : null;
         editId = state.currentId;
         save(); render();
@@ -553,9 +501,8 @@
      If the internet drops, they are sent when it comes back.
      ===================================================================== */
   function send(body) {
-    var s = state.settings;
-    body.key = s.key;
-    return fetch(s.webAppUrl, {
+    body.key = CONFIG.KEY;
+    return fetch(CONFIG.WEB_APP_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },   // keeps it a "simple" request Google accepts
       body: JSON.stringify(body),
@@ -564,26 +511,22 @@
       return res.text().then(function (t) {
         var j;
         try { j = JSON.parse(t); } catch (e) {
-          throw new Error('Google sent back an unexpected page. Check the Web app is deployed with “Who has access: Anyone”.');
+          throw new Error('Google sent back an unexpected page. The connector may need redeploying with “Who has access: Anyone”.');
         }
         if (!j.ok) throw new Error(j.error || 'Unknown error from the connector.');
         return j;
       });
     }, function () {
-      throw new Error(navigator.onLine === false ? 'No internet connection.' : 'Couldn’t reach Google. Check the Web app URL and your internet.');
+      throw new Error(navigator.onLine === false ? 'No internet connection.' : 'Couldn’t reach Google. Check your internet connection.');
     });
   }
 
   var retryTimer = null;
   function flush() {
-    var s = state.settings;
-    if (sync.busy || !state.queue.length || !s.webAppUrl || !s.key) { refreshStatus(); return; }
+    if (sync.busy || !state.queue.length || !linked()) { refreshStatus(); return; }
     var item = state.queue[0];
     sync.busy = true; sync.inflight = item.id; refreshStatus();
-    var k = classById(item.classId);
-    var sheetUrl = (k && k.sheetUrl) || s.sheetUrl;
-    if (!sheetUrl) { sync.busy = false; sync.inflight = null; sync.error = 'No Google Sheet link yet (Settings, step 2).'; refreshStatus(); return; }
-    var body = Object.assign({}, item, { sheetUrl: sheetUrl, className: k ? k.name : item.className });
+    var body = Object.assign({}, item);
     send(body).then(function () {
       state.queue = state.queue.filter(function (q) { return q !== item && !(q.id === item.id && q.action === item.action); });
       save();
@@ -648,85 +591,6 @@
   }
 
 
-
-  /* =====================================================================
-     THE CONNECTOR SCRIPT (pasted into Google Apps Script)
-     ===================================================================== */
-  function connectorScript(key) {
-    return [
-      '// Toilet Pass connector. Paste into a new Google Apps Script project,',
-      '// then Deploy > New deployment > Web app (Execute as: Me, Who has access: Anyone).',
-      '// The key below must match the one in the Toilet Pass settings.',
-      "const KEY = '" + String(key).replace(/[^\w-]/g, '') + "';",
-      "const HEADERS = ['Date', 'Student', 'Partner', 'Time Out', 'Time Back', 'Minutes Away', 'Trip ID'];",
-      '',
-      'function doPost(e) {',
-      '  try {',
-      '    const d = JSON.parse(e.postData.contents);',
-      "    if (d.key !== KEY) return reply({ ok: false, error: 'The secret key does not match. Copy the script again from Toilet Pass settings and redeploy.' });",
-      '    const ss = SpreadsheetApp.openByUrl(d.sheetUrl);',
-      "    if (d.action === 'ping') return reply({ ok: true, name: ss.getName() });",
-      '',
-      '    const lock = LockService.getScriptLock();',
-      '    lock.waitLock(20000);',
-      '    try {',
-      '      const sh = getTab(ss, d.className);',
-      '      const row = findRow(sh, d.id);',
-      "      if (d.action === 'cancel') {",
-      '        if (row) sh.deleteRow(row);',
-      '      } else if (!row) {',
-      "        sh.appendRow([d.date, d.student, d.partner || '', d.timeOut, d.timeBack || '', d.minutes === '' ? '' : Number(d.minutes), d.id]);",
-      '        formatRow(sh, sh.getLastRow());',
-      "      } else if (d.action === 'back') {",
-      '        sh.getRange(row, 5, 1, 2).setValues([[d.timeBack, Number(d.minutes)]]);',
-      '        formatRow(sh, row);',
-      '      }',
-      '    } finally {',
-      '      lock.releaseLock();',
-      '    }',
-      '    return reply({ ok: true });',
-      '  } catch (err) {',
-      '    return reply({ ok: false, error: String(err && err.message || err) });',
-      '  }',
-      '}',
-      '',
-      'function doGet() {',
-      "  return reply({ ok: true, message: 'Toilet Pass connector is running.' });",
-      '}',
-      '',
-      'function getTab(ss, name) {',
-      "  name = String(name || 'Class').replace(/[\\[\\]\\*\\?\\/\\\\:]/g, ' ').trim().slice(0, 90) || 'Class';",
-      '  let sh = ss.getSheetByName(name);',
-      '  if (!sh) {',
-      '    sh = ss.insertSheet(name);',
-      '    sh.getRange(1, 1, 1, HEADERS.length).setValues([HEADERS]).setFontWeight(\'bold\');',
-      '    sh.setFrozenRows(1);',
-      '    sh.setColumnWidths(1, 6, 130);',
-      '    sh.setColumnWidth(2, 170); sh.setColumnWidth(3, 170);',
-      '    sh.hideColumns(7);',
-      "    const blank = ss.getSheetByName('Sheet1');",
-      '    if (blank && blank.getLastRow() === 0 && ss.getSheets().length > 1) ss.deleteSheet(blank);',
-      '  }',
-      '  return sh;',
-      '}',
-      '',
-      'function findRow(sh, id) {',
-      '  if (!id || sh.getLastRow() < 2) return 0;',
-      '  const hit = sh.getRange(2, 7, sh.getLastRow() - 1, 1).createTextFinder(String(id)).matchEntireCell(true).findNext();',
-      '  return hit ? hit.getRow() : 0;',
-      '}',
-      '',
-      'function formatRow(sh, row) {',
-      "  sh.getRange(row, 1).setNumberFormat('ddd d mmm yyyy');",
-      "  sh.getRange(row, 4, 1, 2).setNumberFormat('h:mm am/pm');",
-      '}',
-      '',
-      'function reply(obj) {',
-      '  return ContentService.createTextOutput(JSON.stringify(obj)).setMimeType(ContentService.MimeType.JSON);',
-      '}',
-      ''
-    ].join('\n');
-  }
 
   render();
   flush();
