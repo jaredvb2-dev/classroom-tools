@@ -85,9 +85,35 @@
   .settings .done-bar { position: sticky; bottom: -16px; background: var(--bg); padding: 12px 0; margin-top: 16px; border-top: 1px solid var(--line); }
   kbd { border: 1px solid var(--ink); border-radius: 4px; padding: 0 5px; font-family: var(--font); font-size: 13px; }
 
-  body.mini .bar { padding: 8px; }
-  body.mini main { padding: 12px; }
-  body.mini .big { padding: 20px 14px; }
+  /* ---------- Occupied (a pair is out) ---------- */
+  :root { --red: #c62828; --red-dark: #a51f1f; }
+  .big.occupied { background: var(--red); border-color: var(--red); color: #fff; flex-direction: column; gap: 6px; padding: 22px 18px; }
+  .big.occupied:hover, .big.occupied:focus-visible { background: var(--red-dark); }
+  .big.occupied svg.loo { width: clamp(56px, 16vw, 88px); height: clamp(56px, 16vw, 88px); stroke-width: 1.6; }
+  .occ-names { font-size: clamp(24px, 7vw, 40px); line-height: 1.15; word-break: break-word; }
+  .occ-hint { font-size: 15px; font-weight: normal; opacity: .9; }
+
+  /* ---------- Compact pop-out ---------- */
+  .mini-only { display: none !important; }
+  body.mini.compact .mini-only { display: grid !important; }
+  body.mini.compact .bar { padding: 4px; gap: 4px; border-bottom: 0; }
+  body.mini.compact .bar select { font-size: 12px; padding: 2px 4px; border-width: 1px; border-color: var(--line); border-radius: 6px; font-weight: normal; color: var(--sub); }
+  body.mini.compact .icon-btn { width: 24px; height: 24px; border-width: 1px; border-color: var(--line); border-radius: 6px; color: var(--sub); }
+  body.mini.compact .icon-btn svg { width: 14px; height: 14px; }
+  body.mini.compact main { padding: 0 4px 4px; overflow: hidden; }
+  body.mini.compact .home { gap: 0; }
+  body.mini.compact .big { height: 100%; max-width: none; padding: 4px; border-radius: 10px; border-width: 1px; }
+  body.mini.compact .big.icon-only { background: var(--soft); border-color: var(--line); color: #8a8a8a; }
+  body.mini.compact .big.icon-only:hover, body.mini.compact .big.icon-only:focus-visible { background: #e6e6e6; color: var(--ink); }
+  body.mini.compact .big.icon-only svg.loo { width: 40px; height: 40px; }
+  body.mini.compact .big.occupied { gap: 2px; }
+  body.mini.compact .big.occupied svg.loo { width: 22px; height: 22px; }
+  body.mini.compact .occ-names { font-size: 14px; }
+  body.mini.compact .occ-hint, body.mini.compact .linkish, body.mini.compact .status.ok { display: none; }
+  body.mini.compact .status { padding: 2px 6px; font-size: 11px; border-top: 0; }
+  body.mini.compact .status .retry { padding: 1px 6px; font-size: 11px; }
+  body.mini.compact .out-names { font-size: 14px !important; }
+  body.mini.compact .big.light { font-size: 14px; }
 </style>
 </head>
 <body>
@@ -223,6 +249,7 @@
         html += '<div style="flex:1;font-weight:bold">Toilet Pass</div>';
       }
       if (!pipWin && !isMini) html += '<button class="icon-btn" data-act="popout" title="Pop out a small window that stays on top">' + ICON.popout + '</button>';
+      if (c && state.out[c.id]) html += '<button class="icon-btn mini-only" data-act="cancel" title="Picked the wrong name? Cancel this trip">' + ICON.close + '</button>';
       html += '<button class="icon-btn" data-act="settings" title="Settings">' + ICON.gear + '</button>';
       html += '</div><main>';
 
@@ -246,13 +273,12 @@
         var o = state.out[c.id];
         html += '<div class="home">';
         if (o) {
-          html += '<p class="out-label">Out of class</p>' +
-            '<p class="out-names">' + esc(o.student) + (o.partner ? '<br>&amp; ' + esc(o.partner) : '') + '</p>' +
-            '<button class="big" data-act="return">' + ICON.back + ' Back in class</button>' +
+          html += '<button class="big occupied" data-act="return" title="Occupied. Tap when they’re back">' + ICON.toilet +
+            '<span class="occ-names">' + esc(o.student) + (o.partner ? ' &amp; ' + esc(o.partner) : '') + '</span>' +
+            '<span class="occ-hint">Occupied. Tap when they’re back</span></button>' +
             '<button class="linkish" data-act="cancel">Picked the wrong name? Cancel this trip</button>';
         } else {
-          html += '<button class="big icon-only" data-act="pickStudent" aria-label="Toilet" title="Toilet">' + ICON.toilet + '</button>' +
-            '<p class="hint">One pair out at a time</p>';
+          html += '<button class="big icon-only" data-act="pickStudent" aria-label="Toilet" title="Toilet">' + ICON.toilet + '</button>';
         }
         html += '</div>';
       }
@@ -260,10 +286,27 @@
     }
 
     root.innerHTML = html;
+    fitWindow();
+  }
+
+  /* The pop-out stays small, and grows only while names or settings are on screen. */
+  var SMALL = { w: 170, h: 130 }, LARGE = { w: 420, h: 600 }, lastFit = '';
+  function fitWindow() {
+    var w = pipWin || (isMini ? window : null);
+    if (!w) return;
+    var big = view !== 'home' || !currentClass() || !state.settings.teacher;
+    w.document.body.classList.toggle('compact', !big);
+    var want = big ? 'large' : 'small';
+    if (want === lastFit) return;
+    lastFit = want;
+    var size = big ? LARGE : SMALL;
+    try {
+      w.resizeTo(size.w + (w.outerWidth - w.innerWidth), size.h + (w.outerHeight - w.innerHeight));
+    } catch (e) { /* some browsers only allow resizing right after a click */ }
   }
 
   function renderStatus() {
-    var n = state.queue.length, txt, btn = '';
+    var n = state.queue.length, txt, btn = '', ok = false;
     if (!linked()) {
       txt = 'Not linked to Google Sheets yet (the school setup isn’t finished). Trips are kept on this computer.' + (n ? ' (' + n + ' waiting)' : '');
     } else if (sync.busy) {
@@ -276,8 +319,10 @@
       btn = '<button class="retry" data-act="retry">Try again</button>';
     } else {
       txt = sync.lastOk ? 'Saved to Google Sheet at ' + esc(sync.lastOk) : 'Linked to Google Sheet';
+      ok = true;
     }
-    return '<div class="status"><span>' + txt + '</span>' + btn + '</div>';
+    if (sync.busy) ok = true;
+    return '<div class="status' + (ok ? ' ok' : '') + '"><span>' + txt + '</span>' + btn + '</div>';
   }
 
   function renderSettings() {
@@ -562,7 +607,7 @@
 
   function popOut() {
     if ('documentPictureInPicture' in window) {
-      window.documentPictureInPicture.requestWindow({ width: 380, height: 520 }).then(function (w) {
+      window.documentPictureInPicture.requestWindow({ width: SMALL.w, height: SMALL.h }).then(function (w) {
         pipWin = w;
         Array.prototype.forEach.call(document.querySelectorAll('style, link[rel=stylesheet]'), function (n) {
           w.document.head.appendChild(n.cloneNode(true));
@@ -572,8 +617,9 @@
         w.document.body.appendChild(root);
         document.body.innerHTML = '<div style="font-family:var(--font);padding:40px;text-align:center"><p style="font-size:22px;font-weight:bold">Toilet Pass is in the floating window.</p><p>Close the floating window to bring it back here.</p></div>';
         render();
+        lastFit = 'small';
         w.addEventListener('pagehide', function () {
-          pipWin = null;
+          pipWin = null; lastFit = '';
           document.body.innerHTML = '';
           document.body.appendChild(root);
           render();
@@ -586,7 +632,7 @@
 
   function popupFallback() {
     var w = window.open(location.href.split('#')[0].split('?')[0] + '?mini=1', 'toiletPassMini',
-      'width=380,height=560,menubar=no,toolbar=no,location=no,status=no');
+      'width=' + SMALL.w + ',height=' + SMALL.h + ',menubar=no,toolbar=no,location=no,status=no');
     if (!w) alert('Your browser blocked the pop-up. Allow pop-ups for this page, or use Chrome or Edge for a window that stays on top.');
   }
 
