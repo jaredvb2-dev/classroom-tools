@@ -183,24 +183,26 @@
   .card.r { border-color: var(--r-edge); }
   .card.p { border-color: var(--p-edge); }
   /* ---------- student picker + think-pair-share ---------- */
-  #picker { position: fixed; top: var(--pk-top, 70px); right: 12px; bottom: 12px; width: 226px; z-index: 30; background: #fff; border: 3px solid #000; border-radius: 10px;
-    padding: 12px; box-sizing: border-box; display: none; flex-direction: column; gap: 10px; overflow-y: auto; }
+  #picker { position: fixed; top: var(--pk-top, 70px); right: 12px; bottom: 12px; width: 186px; z-index: 30; background: #fff; border: 3px solid #000; border-radius: 10px;
+    padding: 10px; box-sizing: border-box; display: none; flex-direction: column; gap: 9px; overflow-y: auto; }
   body.picker-open #picker { display: flex; }
-  body.picker-open #gridFit, body.picker-open #topics { margin-right: 236px; }
+  body.picker-open #gridFit, body.picker-open #topics { margin-right: 196px; }
   body.picker-open #pickerTab { display: none; }
   #pickerTab { position: fixed; right: 0; top: 50%; transform: translateY(-50%); z-index: 30; writing-mode: vertical-rl; font-size: 16px;
     padding: 14px 7px; border-right: 0; border-radius: 8px 0 0 8px; }
   .pk-head { display: flex; align-items: center; justify-content: space-between; }
-  .pk-head b { font-size: 20px; }
+  .pk-head b { font-size: 18px; }
   .pk-head button, .pk-row button { font-size: 15px; padding: 6px 10px; }
   .pk-row { display: flex; gap: 6px; align-items: center; }
   .pk-row .sel { flex: 1; min-width: 0; font-size: 15px; }
   .pk-name { min-height: 96px; border: 3px solid #000; border-radius: 10px; display: flex; align-items: center; justify-content: center; text-align: center;
-    font-size: 28px; font-weight: 700; line-height: 1.15; padding: 8px; word-break: break-word; }
+    font-size: 24px; font-weight: 700; line-height: 1.15; padding: 6px; word-break: normal; overflow-wrap: anywhere; hyphens: manual; }
+  .pk-name.long { font-size: 20px; }
+  .pk-name.longer { font-size: 17px; }
   .pk-name.rolling { color: #888; }
   .pk-name.share { border-color: var(--p-edge); color: var(--p-edge); }
   #pkMain { display: flex; flex-direction: column; gap: 10px; }
-  #pkPick { font-size: 20px; padding: 12px; }
+  #pkPick { font-size: 18px; padding: 10px; }
   .pk-left { font-size: 13px; color: #444; text-align: center; }
   .pk-left button { font-size: 13px; padding: 2px 8px; border-width: 2px; margin-left: 4px; }
   #pkEdit[hidden] { display: none; }
@@ -2963,7 +2965,9 @@ function pkPick(onDone) {
   clearInterval(pkRolling); box.classList.add('rolling'); box.classList.remove('share');
   pkRolling = setInterval(() => {
     box.textContent = pick(c.students);
-    if (++k >= 9) { clearInterval(pkRolling); box.classList.remove('rolling'); box.textContent = chosen; pkRender(); if (onDone) onDone(chosen); }
+    if (++k >= 9) { clearInterval(pkRolling); box.classList.remove('rolling'); box.textContent = chosen;
+      const longest = Math.max(...chosen.split(/[\s-]/).map(w => w.length));
+      box.classList.toggle('long', longest > 6 && longest <= 9); box.classList.toggle('longer', longest > 9); pkRender(); if (onDone) onDone(chosen); }
   }, 55);
 }
 function pkOpenEdit(isNew) {
