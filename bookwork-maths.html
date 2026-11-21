@@ -240,7 +240,6 @@
   .tps-steps span.done { border-color: var(--p-edge); color: var(--p-edge); }
   .tps-steps span.on { background: var(--p-edge); border-color: var(--p-edge); color: #fff; }
   .tps-say { font-size: 30px; font-weight: 700; line-height: 1.3; }
-  .tps-name { color: var(--p-edge); }
   .tps-stems { margin: 0; padding-left: 30px; font-size: 26px; line-height: 1.5; }
   .tps-btns { display: flex; gap: 10px; flex-wrap: wrap; }
   .grid.ntps .controls { display: none; }
@@ -2092,7 +2091,7 @@ let { GEN, TOPICS } = STAGES[stage];
 
 const LEVELS = [null, { cls: 'g', stars: '★' }, { cls: 'o', stars: '★★' }, { cls: 'r', stars: '★★★' }];
 const PLANS = { 12: [1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3], 3: [1, 2, 3] }; // a column of 4 per level
-let count = 12, singleLevel = 1, apkMode = false, tpsMode = false, tpsLevel = 2, tpsPhase = 0, tpsName = '';
+let count = 12, singleLevel = 1, apkMode = false, tpsMode = false, tpsLevel = 2, tpsPhase = 0;
 try { if (localStorage.getItem('bookworkTPSLevel') === '3') tpsLevel = 3; } catch (e) {}
 try { const c = +localStorage.getItem('bookworkCount'); if ([1, 3, 12].includes(c)) count = c; const l = +localStorage.getItem('bookworkLevel'); if ([1, 2, 3].includes(l)) singleLevel = l; } catch (e) {}
 const planFor = () => count === 1 ? [singleLevel] : PLANS[count];
@@ -2539,6 +2538,7 @@ function generateAPK() {
 
 /* =================== think-pair-share mode =================== */
 // One orange or red question. The teacher taps through Think, Pair, Share and Answer.
+// Choosing who shares is left to the teacher (the picker is always there if wanted).
 const TPS_STEPS = ['Think', 'Pair', 'Share', 'Answer'];
 const TPS_STEMS = ['We got ___ because ___.', 'First we ___, then we ___.', 'I agree / disagree with my partner because ___.'];
 function tpsPanel() {
@@ -2547,21 +2547,16 @@ function tpsPanel() {
   let say = '', extra = '', btns = '';
   if (tpsPhase === 0) { say = 'Think. Read the question carefully.'; btns = '<button class="primary" data-t="next">Pair ▸</button>'; }
   else if (tpsPhase === 1) { say = 'Pair. Work it out together with your partner.'; extra = '<ul class="tps-stems">' + TPS_STEMS.map(t => `<li>${t}</li>`).join('') + '</ul>'; btns = '<button class="primary" data-t="next">Share ▸</button>'; }
-  else if (tpsPhase === 2) { say = (tpsName ? `<span class="tps-name">${tpsName.replace(/</g, '&lt;')}</span>, ` : 'Picking… ') + 'what did you get? How did you get there?'; btns = '<button data-t="again">Pick another</button><button class="primary" data-t="next">Show answer ▸</button>'; }
+  else if (tpsPhase === 2) { say = 'Chin whiteboards.'; btns = '<button class="primary" data-t="next">Show answer ▸</button>'; }
   else { say = ''; btns = '<button class="primary" data-t="new">Next question ▸</button>'; }
   el.innerHTML = `<div class="tps-steps">${steps}</div>${say ? `<div class="tps-say">${say}</div>` : ''}${extra}<div class="tps-btns">${btns}</div>`;
   el.querySelectorAll('[data-t]').forEach(b => b.onclick = () => {
     const t = b.dataset.t;
     if (t === 'new') { generate(); return; }
     if (t === 'next') tpsPhase++;
-    if (tpsPhase === 2 && (t === 'next' || t === 'again')) { tpsName = ''; render(); tpsPickSharer(); return; }
     render();
   });
   return el;
-}
-function tpsPickSharer() {
-  pk.open = true; pkSave(); pkRender(); queueZoom();
-  pkPick(name => { tpsName = name; if (tpsMode && tpsPhase === 2) render(); });
 }
 
 /* =================== problem set =================== */
@@ -2582,7 +2577,7 @@ function generate() {
   if (tpsMode) {
     const topic = practise !== 'review' && GEN[practise] ? practise : pick([...selected]);
     problems = [makeProblem(tpsLevel, topic, new Set())];
-    tpsPhase = 0; tpsName = '';
+    tpsPhase = 0;
     render(); return;
   }
   const pool = [...selected];
