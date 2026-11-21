@@ -2545,11 +2545,11 @@ function tpsPanel() {
   const el = document.createElement('div'); el.className = 'tps-head';
   const steps = TPS_STEPS.map((t, i) => `<span class="${i === tpsPhase ? 'on' : i < tpsPhase ? 'done' : ''}">${i + 1}. ${t}</span>`).join('');
   let say = '', extra = '', btns = '';
-  if (tpsPhase === 0) { say = 'Think on your own. Solve it on your whiteboard. No talking yet.'; btns = '<button class="primary" data-t="next">Pair ▸</button>'; }
+  if (tpsPhase === 0) { say = 'Think. Read the question carefully.'; btns = '<button class="primary" data-t="next">Pair ▸</button>'; }
   else if (tpsPhase === 1) { say = 'Pair. Work it out together with your partner.'; extra = '<ul class="tps-stems">' + TPS_STEMS.map(t => `<li>${t}</li>`).join('') + '</ul>'; btns = '<button class="primary" data-t="next">Share ▸</button>'; }
   else if (tpsPhase === 2) { say = (tpsName ? `<span class="tps-name">${tpsName.replace(/</g, '&lt;')}</span>, ` : 'Picking… ') + 'what did you get? How did you get there?'; btns = '<button data-t="again">Pick another</button><button class="primary" data-t="next">Show answer ▸</button>'; }
-  else { say = 'Did your pair get the same? If not, where did your thinking change?'; btns = '<button class="primary" data-t="new">Next question ▸</button>'; }
-  el.innerHTML = `<div class="tps-steps">${steps}</div><div class="tps-say">${say}</div>${extra}<div class="tps-btns">${btns}</div>`;
+  else { say = ''; btns = '<button class="primary" data-t="new">Next question ▸</button>'; }
+  el.innerHTML = `<div class="tps-steps">${steps}</div>${say ? `<div class="tps-say">${say}</div>` : ''}${extra}<div class="tps-btns">${btns}</div>`;
   el.querySelectorAll('[data-t]').forEach(b => b.onclick = () => {
     const t = b.dataset.t;
     if (t === 'new') { generate(); return; }
