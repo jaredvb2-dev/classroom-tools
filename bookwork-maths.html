@@ -2949,10 +2949,8 @@ function pkRender() {
   const sel = $pk('pkClass'), c = pkClass();
   sel.innerHTML = pk.classes.length ? pk.classes.map(k => `<option value="${k.id}">${k.name.replace(/</g, '&lt;')}</option>`).join('') : '<option value="">No classes yet</option>';
   if (c) sel.value = c.id;
-  if (!c || !c.students.length) { $pk('pkLeft').textContent = 'Tap ✎ to add your class list.'; return; }
-  const n = pkRemaining(c).length || c.students.length;
-  $pk('pkLeft').innerHTML = `${n} of ${c.students.length} still to pick <button id="pkReset" title="Start a new round">Reset</button>`;
-  $pk('pkReset').onclick = () => { pk.left[c.id] = []; pkSave(); pkRender(); $pk('pkName').textContent = '—'; };
+  // Everyone gets a turn before anyone repeats; the count stays behind the scenes.
+  $pk('pkLeft').textContent = !c || !c.students.length ? 'Tap ✎ to add your class list.' : '';
 }
 let pkRolling = null;
 function pkPick(onDone) {
