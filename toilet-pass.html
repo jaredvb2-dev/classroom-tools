@@ -93,27 +93,15 @@
   .occ-names { font-size: clamp(24px, 7vw, 40px); line-height: 1.15; word-break: break-word; }
   .occ-hint { font-size: 15px; font-weight: normal; opacity: .9; }
 
-  /* ---------- Compact pop-out ---------- */
-  .mini-only { display: none !important; }
-  body.mini.compact .mini-only { display: grid !important; }
-  body.mini.compact .bar { padding: 4px; gap: 4px; border-bottom: 0; }
-  body.mini.compact .bar select { font-size: 12px; padding: 2px 4px; border-width: 1px; border-color: var(--line); border-radius: 6px; font-weight: normal; color: var(--sub); }
-  body.mini.compact .icon-btn { width: 24px; height: 24px; border-width: 1px; border-color: var(--line); border-radius: 6px; color: var(--sub); }
-  body.mini.compact .icon-btn svg { width: 14px; height: 14px; }
-  body.mini.compact main { padding: 0 4px 4px; overflow: hidden; }
-  body.mini.compact .home { gap: 0; }
-  body.mini.compact .big { height: 100%; max-width: none; padding: 4px; border-radius: 10px; border-width: 1px; }
-  body.mini.compact .big.icon-only { background: var(--soft); border-color: var(--line); color: #8a8a8a; }
-  body.mini.compact .big.icon-only:hover, body.mini.compact .big.icon-only:focus-visible { background: #e6e6e6; color: var(--ink); }
-  body.mini.compact .big.icon-only svg.loo { width: 40px; height: 40px; }
-  body.mini.compact .big.occupied { gap: 2px; }
-  body.mini.compact .big.occupied svg.loo { width: 22px; height: 22px; }
-  body.mini.compact .occ-names { font-size: 14px; }
-  body.mini.compact .occ-hint, body.mini.compact .linkish, body.mini.compact .status.ok { display: none; }
-  body.mini.compact .status { padding: 2px 6px; font-size: 11px; border-top: 0; }
-  body.mini.compact .status .retry { padding: 1px 6px; font-size: 11px; }
-  body.mini.compact .out-names { font-size: 14px !important; }
-  body.mini.compact .big.light { font-size: 14px; }
+  /* ---------- Tiny pop-out button ---------- */
+  .tiny { display: grid; place-items: center; width: 100vw; height: 100vh; margin: 0; padding: 0; border: 0;
+    background: #ededed; color: #9a9a9a; }
+  .tiny svg { width: min(56vw, 56vh); height: min(56vw, 56vh); fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  .tiny:hover, .tiny:focus-visible { background: #e0e0e0; color: var(--ink); outline: none; }
+  .tiny.occ { background: var(--red); color: #fff; }
+  .tiny.occ:hover, .tiny.occ:focus-visible { background: var(--red-dark); }
+  .tiny .dot { position: fixed; top: 3px; right: 3px; width: 7px; height: 7px; border-radius: 50%; background: #e0a100; }
+  body.mini.compact #app { min-height: 0; height: 100vh; }
 </style>
 </head>
 <body>
@@ -229,11 +217,23 @@
   /* =====================================================================
      RENDER
      ===================================================================== */
+  function inPopout() { return !!pipWin || isMini; }
+  function isCollapsed() {
+    return inPopout() && !miniOpen && view === 'home' && !!currentClass() && !!state.settings.teacher;
+  }
+
   function render() {
     var c = currentClass();
     var html = '';
 
-    if (view === 'settings') {
+    if (isCollapsed()) {
+      var o = state.out[c.id];
+      var unsaved = state.queue.length && (sync.error || !linked());
+      html = '<button class="tiny' + (o ? ' occ' : '') + '" data-act="miniOpen" title="' +
+        (o ? esc(o.student + (o.partner ? ' & ' + o.partner : '') + ' are out. Tap to sign back in') : 'Toilet') + '" aria-label="' +
+        (o ? 'Occupied: ' + esc(o.student + (o.partner ? ' and ' + o.partner : '')) : 'Toilet') + '">' + ICON.toilet +
+        (unsaved ? '<span class="dot" title="Some trips are not saved yet"></span>' : '') + '</button>';
+    } else if (view === 'settings') {
       html = renderSettings();
     } else {
       // top bar
@@ -249,7 +249,7 @@
         html += '<div style="flex:1;font-weight:bold">Toilet Pass</div>';
       }
       if (!pipWin && !isMini) html += '<button class="icon-btn" data-act="popout" title="Pop out a small window that stays on top">' + ICON.popout + '</button>';
-      if (c && state.out[c.id]) html += '<button class="icon-btn mini-only" data-act="cancel" title="Picked the wrong name? Cancel this trip">' + ICON.close + '</button>';
+      if (inPopout()) html += '<button class="icon-btn" data-act="collapse" title="Shrink back to the corner">' + ICON.close + '</button>';
       html += '<button class="icon-btn" data-act="settings" title="Settings">' + ICON.gear + '</button>';
       html += '</div><main>';
 
@@ -290,11 +290,11 @@
   }
 
   /* The pop-out stays small, and grows only while names or settings are on screen. */
-  var SMALL = { w: 170, h: 130 }, LARGE = { w: 420, h: 600 }, lastFit = '';
+  var SMALL = { w: 64, h: 64 }, LARGE = { w: 420, h: 600 }, lastFit = '', miniOpen = false;
   function fitWindow() {
     var w = pipWin || (isMini ? window : null);
     if (!w) return;
-    var big = view !== 'home' || !currentClass() || !state.settings.teacher;
+    var big = !isCollapsed();
     w.document.body.classList.toggle('compact', !big);
     var want = big ? 'large' : 'small';
     if (want === lastFit) return;
@@ -380,7 +380,12 @@
     var act = b.getAttribute('data-act'), c = currentClass();
 
     switch (act) {
-      case 'home': view = 'home'; pending = null; confirmDelete = false; render(); break;
+      case 'home': view = 'home'; pending = null; confirmDelete = false; if (inPopout()) miniOpen = false; render(); break;
+      case 'collapse': view = 'home'; pending = null; miniOpen = false; render(); break;
+      case 'miniOpen':
+        miniOpen = true; pending = null;
+        view = state.out[c.id] ? 'home' : 'pickStudent';
+        render(); break;
       case 'settings':
         view = 'settings'; editId = c ? c.id : null; confirmDelete = false;
         if (!state.classes.length) newClass();
@@ -444,7 +449,7 @@
     var trip = { id: uid(), student: student, partner: partner, outAt: Date.now() };
     state.out[c.id] = trip;
     state.queue.push(tripPayload('out', c, trip));
-    view = 'home'; pending = null;
+    view = 'home'; pending = null; miniOpen = false;
     save(); render(); flush();
   }
 
@@ -453,6 +458,7 @@
     if (!trip) return;
     state.queue.push(tripPayload('back', c, trip, Date.now()));
     delete state.out[c.id];
+    miniOpen = false;
     save(); render(); flush();
   }
 
@@ -465,6 +471,7 @@
     state.queue = state.queue.filter(function (q) { return q.id !== trip.id || (sending && q === state.queue[0]); });
     if (sending || state.queue.length === before) state.queue.push(tripPayload('cancel', c, trip));
     delete state.out[c.id];
+    miniOpen = false;
     save(); render(); flush();
   }
 
@@ -585,6 +592,7 @@
   }
 
   function refreshStatus() {
+    if (isCollapsed()) { render(); return; }
     var el = root.querySelector('.status');
     if (el) el.outerHTML = renderStatus();
   }
