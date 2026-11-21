@@ -2370,7 +2370,7 @@ const APK_SKILLS = {
   },
   bonds60() {
     const a = 5 * R(1, 11);
-    return { name: 'Minutes to the hour', q: `${a} + ${Q} = 60`, a: String(60 - a), s: [`Count on in 5s from ${a} to 60.`, `${a} + ${60 - a} = 60`] };
+    return { name: 'Making 60', q: `${a} + ${Q} = 60`, a: String(60 - a), s: [`Count on in 5s from ${a} to 60.`, `${a} + ${60 - a} = 60`] };
   },
   polySides(st) {
     const list = st <= 2 ? [['triangle', 3], ['square', 4], ['pentagon', 5], ['hexagon', 6], ['octagon', 8]] : [['pentagon', 5], ['hexagon', 6], ['heptagon', 7], ['octagon', 8], ['decagon', 10], ['dodecagon', 12]];
@@ -2461,50 +2461,55 @@ const APK_SKILLS = {
   }
 };
 
-// What each topic builds on. Only skills that come BEFORE the topic, never the topic itself.
+// APK = basic number skills a student needs BEFORE the lesson, assuming the topic has not been taught.
+// Rule: no APK question may use the topic's own idea (no fractions for Fractions, no clocks for Time,
+// no angles for Angles, no skip counting for Counting patterns, and so on).
 // 'skill' uses the current stage, 'skill@2' a fixed stage, 'skill:5' passes a value (e.g. skip count by 5),
-// 'gen:2:perim:1' uses a real question (with its diagram) from another topic, at that stage and level.
-// A map can be split by stage with { 1: [...], 2: [...], 3: [...] }.
+// 'gen:3:mult:1' uses a real question from another topic. Maps are set per stage: { 1: [...], 2: [...], 3: [...] }.
 const APK_MAP = {
-  add: { 1: ['moreLess:more', 'bonds', 'gen:1:pv:1', 'beforeAfter'], 2: ['addFactsBasic', 'regroup', 'placeValue', 'addTens'], 3: ['addFactsBasic', 'regroup', 'decPV', 'gen:2:add:1'] },
-  sub: { 1: ['moreLess:less', 'bonds', 'gen:1:pv:1', 'countBack'], 2: ['subFactsBasic', 'trade', 'placeValue', 'bonds'], 3: ['subFactsBasic', 'trade', 'decPV', 'gen:2:sub:1'] },
-  patterns: { 1: ['beforeAfter', 'moreLess', 'skipCount:10', 'countBack'], 2: ['addFacts', 'subFacts', 'skipCount@1', 'oddEven'] },
-  pv: { 1: ['skipCount:10', 'tensCount', 'beforeAfter'], 2: ['gen:1:pv:3', 'tensCount', 'moreLess@1', 'compare@1'] },
-  compare: { 1: ['gen:1:pv:1', 'tensDigit', 'beforeAfter'] },
-  nline: { 1: ['skipCount', 'beforeAfter', 'between'], 2: ['skipCount', 'halfway', 'gen:1:nline:3', 'tenthsFacts'] },
-  oddeven: { 1: ['skipCount:2', 'doubles', 'pairs'] },
-  groups: { 1: ['skipCount', 'repeatAdd', 'doubles', 'skipCount:5'] },
-  halves: { 1: ['divFacts', 'doubles', 'skipCount:2'] },
-  money: { 1: ['skipCount', 'addTens', 'compare', 'addFacts'], 2: ['moneyFacts@1', 'bonds', 'addTens', 'skipCount:5'] },
-  time: { 1: ['skipCount:5', 'clockFacts', 'clockFacts'], 2: ['clockFacts@1', 'skipCount:5', 'bonds60', 'clockFacts'], 3: ['clockFacts', 'bonds60', 'gen:2:time:2', 'addFacts'] },
-  measure: { 1: ['compare', 'addFacts', 'subFacts', 'unitFacts'] },
-  shapes: { 1: ['shapeWords', 'shapeWords', 'shapeWords', 'shapeWords'] },
-  shapes2: { 2: ['gen:1:shapes:2', 'shapeWords', 'angleFacts', 'polySides'] },
-  shapes3: { 3: ['gen:2:shapes2:2', 'gen:2:shapes2:1', 'shapeWords', 'angleFactsBasic'] },
-  wp: { 1: ['opWords', 'addFacts', 'subFacts', 'bonds'], 2: ['opWords', 'addFacts', 'subFacts', 'timesFacts'], 3: ['opWords', 'timesFacts', 'addFactsBasic', 'gen:3:mult:1'] },
-  data: { 1: ['tally', 'compare', 'add3', 'subFacts'], 2: ['skipCount', 'compare', 'add3', 'subFacts'], 3: ['skipCount', 'compare', 'subFacts', 'add3'] },
-  chance: { 1: ['moreFewer', 'moreFewer', 'compare'], 2: ['gen:1:chance:2', 'moreFewer', 'diceFacts'] },
-  prob: { 3: ['equivFrac', 'fracDec', 'pctFacts', 'gen:2:chance:1'] },
-  mult: { 2: ['skipCount', 'repeatAdd', 'doubles', 'mult10'], 3: ['timesFacts', 'mult10', 'expanded', 'gen:2:mult:3'] },
-  div: { 2: ['timesFacts', 'skipCount', 'subFacts', 'halves'], 3: ['timesFacts', 'divFacts', 'mult10', 'subFacts'] },
-  frac: { 2: ['gen:1:halves:2', 'divFacts', 'timesFacts', 'halves'], 3: ['equivFrac', 'timesFacts', 'halfFrac', 'gen:2:frac:2'] },
-  decs: { 2: ['tenthsFacts', 'placeValue', 'subFacts', 'tenthsFacts'] },
-  round: { 2: ['placeValue', 'halfway', 'compare', 'skipCount'], 3: ['placeValue', 'decPV', 'halfway', 'gen:2:round:2'] },
-  func: { 2: ['timesFacts', 'addFacts', 'inverse', 'subFacts'], 3: ['inverse', 'timesFacts', 'gen:2:func:2', 'subFacts'] },
-  area: { 2: ['timesFacts', 'timesFacts', 'rectPerim', 'skipCount'], 3: ['timesFacts', 'timesFacts', 'rectPerim', 'gen:3:mult:1'] },
-  perim: { 2: ['add3', 'doubles', 'polySides', 'timesFacts'], 3: ['add3', 'doubles', 'polySides', 'timesFacts'] },
-  vol: { 3: ['rectArea', 'timesFacts', 'divFacts', 'gen:3:mult:1'] },
-  units: { 2: ['mult10', 'unitFacts@1', 'placeValue', 'mult10'], 3: ['mult10', 'unitFacts@2', 'decPV', 'mult10'] },
-  symmetry: { 2: ['gen:1:halves:2', 'gen:1:shapes:2', 'shapeWords', 'polySides'], 3: ['turns', 'polySides', 'shapeWords', 'compass'] },
-  gridref: { 2: ['compass', 'alphaOrder', 'gridWords', 'compare'] },
-  coords: { 3: ['gen:2:gridref:1', 'negNumbers', 'gen:2:nline:1', 'compass'] },
-  maps: { 3: ['compass', 'timesFacts', 'unitFacts@2', 'gen:2:gridref:2'] },
-  angles: { 3: ['angleFactsBasic', 'turns', 'subFacts', 'compass'] },
-  decmult: { 3: ['timesFacts', 'mult10', 'decPV', 'gen:3:mult:1'] },
-  pct: { 3: ['pctFacts', 'halfFrac', 'mult10', 'halves'] },
+  // ---- Number ----
+  add: { 1: ['skipCount:1', 'beforeAfter', 'gen:1:pv:1', 'moreLess:more'], 2: ['addFactsBasic', 'regroup', 'placeValue', 'addTens'], 3: ['addFactsBasic', 'regroup', 'placeValue', 'decPV'] },
+  sub: { 1: ['countBack', 'beforeAfter', 'gen:1:pv:1', 'moreLess:less'], 2: ['subFactsBasic', 'trade', 'placeValue', 'bonds'], 3: ['subFactsBasic', 'trade', 'placeValue', 'decPV'] },
+  patterns: { 1: ['beforeAfter', 'between', 'compare', 'tensDigit'], 2: ['addFacts', 'subFacts', 'timesFacts', 'oddEven'] },
+  pv: { 1: ['skipCount:1', 'beforeAfter', 'between', 'skipCount:10'], 2: ['skipCount', 'addTens', 'addFacts', 'beforeAfter'] },
+  compare: { 1: ['beforeAfter', 'between', 'skipCount:1', 'tensCount'] },
+  nline: { 1: ['skipCount', 'beforeAfter', 'between'], 2: ['skipCount', 'addFacts', 'subFacts', 'doubles'] },
+  oddeven: { 1: ['skipCount:2', 'doubles', 'addFacts', 'beforeAfter'] },
+  groups: { 1: ['skipCount', 'doubles', 'addFacts', 'add3'] },
+  halves: { 1: ['doubles', 'skipCount:2', 'addFacts', 'bonds'] },
+  money: { 1: ['skipCount', 'addTens', 'compare', 'addFacts'], 2: ['bonds', 'addTens', 'skipCount:5', 'subFacts'] },
+  mult: { 2: ['skipCount', 'doubles', 'add3', 'addFacts'], 3: ['timesFacts', 'expanded', 'addFacts', 'placeValue'] },
+  div: { 2: ['timesFacts', 'skipCount', 'subFacts', 'doubles'], 3: ['timesFacts', 'subFacts', 'placeValue', 'skipCount'] },
+  frac: { 2: ['timesFacts', 'divFacts', 'skipCount', 'doubles'], 3: ['timesFacts', 'divFacts', 'skipCount', 'doubles'] },
+  decs: { 2: ['placeValue', 'mult10', 'addFacts', 'subFacts'] },
+  decmult: { 3: ['timesFacts', 'placeValue', 'addFacts', 'skipCount'] },
+  pct: { 3: ['mult10', 'halves', 'divFacts', 'timesFacts'] },
+  round: { 2: ['placeValue', 'compare', 'skipCount', 'halves'], 3: ['placeValue', 'decPV', 'compare', 'skipCount'] },
   factors: { 3: ['timesFacts', 'skipCount', 'divFacts', 'oddEven'] },
   ops: { 3: ['timesFacts', 'divFacts', 'addFacts', 'subFacts'] },
-  halfway: { 3: ['skipCount', 'halves', 'gen:2:nline:2', 'compare'] }
+  func: { 2: ['timesFacts', 'addFacts', 'subFacts', 'divFacts'], 3: ['timesFacts', 'addFacts', 'subFacts', 'divFacts'] },
+  halfway: { 3: ['skipCount', 'halves', 'compare', 'addFacts'] },
+  // ---- Measurement ----
+  time: { 1: ['skipCount:5', 'beforeAfter', 'addFacts', 'between'], 2: ['skipCount:5', 'bonds60', 'addFacts', 'subFacts'], 3: ['bonds60', 'addFacts', 'subFacts', 'timesFacts'] },
+  measure: { 1: ['compare', 'addFacts', 'subFacts', 'beforeAfter'] },
+  area: { 2: ['timesFacts', 'timesFacts', 'rectPerim', 'skipCount'], 3: ['timesFacts', 'timesFacts', 'rectPerim', 'gen:3:mult:1'] },
+  perim: { 2: ['add3', 'doubles', 'timesFacts', 'addFacts'], 3: ['add3', 'doubles', 'timesFacts', 'addFacts'] },
+  vol: { 3: ['timesFacts', 'timesFacts', 'divFacts', 'gen:3:mult:1'] },
+  units: { 2: ['mult10', 'placeValue', 'timesFacts', 'divFacts'], 3: ['mult10', 'mult10', 'decPV', 'placeValue'] },
+  // ---- Space and geometry ----
+  shapes: { 1: ['skipCount:1', 'beforeAfter', 'addFacts', 'compare'] },
+  shapes2: { 2: ['addFacts', 'compare', 'skipCount', 'doubles'] },
+  shapes3: { 3: ['addFacts', 'subFacts', 'compare', 'skipCount'] },
+  angles: { 3: ['subFacts', 'addFacts', 'bonds', 'halves'] },
+  symmetry: { 2: ['doubles', 'halves', 'compare', 'skipCount'], 3: ['doubles', 'halves', 'compare', 'compass'] },
+  gridref: { 2: ['alphaOrder', 'compass', 'compare', 'skipCount:1'] },
+  coords: { 3: ['negNumbers', 'compare', 'addFacts', 'compass'] },
+  maps: { 3: ['timesFacts', 'mult10', 'addFacts', 'divFacts'] },
+  // ---- Problem solving, statistics and probability ----
+  wp: { 1: ['addFacts', 'subFacts', 'bonds', 'beforeAfter'], 2: ['addFacts', 'subFacts', 'timesFacts', 'divFacts'], 3: ['timesFacts', 'addFactsBasic', 'subFactsBasic', 'divFacts'] },
+  data: { 1: ['compare', 'add3', 'subFacts', 'skipCount'], 2: ['skipCount', 'compare', 'add3', 'subFacts'], 3: ['skipCount', 'compare', 'subFacts', 'add3'] },
+  chance: { 1: ['moreFewer', 'compare', 'addFacts'], 2: ['moreFewer', 'compare', 'addFacts', 'subFacts'] },
+  prob: { 3: ['divFacts', 'timesFacts', 'mult10', 'compare'] }
 };
 const APK_COUNT = 4;
 
