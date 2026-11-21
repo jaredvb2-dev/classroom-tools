@@ -113,6 +113,8 @@
   .badge { position: absolute; top: -5px; right: -5px; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 999px;
     background: var(--accent); color: #fff; font-size: 11px; font-weight: 700; display: grid; place-items: center; }
   .sub-h { font-weight: 600; color: var(--sub); font-size: 16px; margin-left: 6px; }
+  .sync-line { font-size: 13px !important; color: var(--accent) !important; margin: -4px 0 10px !important; }
+  .sync-line:empty { display: none; }
   .notice { margin: 0 0 12px; padding: 10px 12px; border-radius: 12px; background: #fff7e6; border: 1px solid #fde3a7; font-size: 14px; line-height: 1.45; }
   .empty { color: var(--sub); text-align: center; margin: 40px 0; }
   .trips { list-style: none; margin: 0; padding: 0; border: 1px solid var(--line); border-radius: 16px; overflow: hidden; background: rgba(255, 255, 255, .85); }
@@ -179,7 +181,9 @@
       settings: { teacher: '' },
       out: {},                     // classId -> { id, student, partner, outAt }
       queue: [],                   // entries waiting to be written to the Sheet
-      recent: []                   // this computer's trips from the last two days, a backup for the Today list
+      recent: [],                  // this computer's trips from the last two days, a backup for the Today list
+      classesUpdated: 0,           // when the class lists were last changed (here or loaded from the Sheet)
+      classesDirty: false          // class lists changed here but not yet saved to the Sheet
     };
   }
 
@@ -192,6 +196,8 @@
         s.settings = Object.assign(b.settings, s.settings || {});
         s.out = s.out || {};
         s.queue = Array.isArray(s.queue) ? s.queue : [];
+        s.classesUpdated = +s.classesUpdated || 0;
+        s.classesDirty = !!s.classesDirty;
         var cutoff = Date.now() - 2 * 864e5;
         s.recent = (Array.isArray(s.recent) ? s.recent : []).filter(function (r) { return r.outAt > cutoff; });
         return s;
@@ -347,6 +353,67 @@
     root.innerHTML = html;
     fitWindow();
     if (c && state.settings.teacher && view !== 'settings') fetchToday(c);
+  }
+
+  /* =====================================================================
+     CLASS LISTS IN THE SHEET
+     Saved to a hidden tab (one row per teacher) so they survive a wiped
+     computer, and load on any computer once the teacher types their name.
+     The most recent change wins.
+     ===================================================================== */
+  var classSync = { busy: false, msg: '' };
+  function sheetClasses() { return linked() && sync.version >= 3 && !!state.settings.teacher; }
+
+  function classesChanged() {
+    state.classesUpdated = Date.now();
+    state.classesDirty = true;
+    save();
+    saveClassesToSheet();
+  }
+
+  function saveClassesToSheet() {
+    if (!sheetClasses() || !state.classesDirty || classSync.busy) return;
+    classSync.busy = true; classSync.msg = 'Saving class lists to the Sheet…'; showClassSync();
+    var sentAt = state.classesUpdated;
+    send({ action: 'saveClasses', teacher: state.settings.teacher, updated: sentAt,
+      classes: state.classes.map(function (k) { return { id: k.id, name: k.name, students: k.students }; }) }).then(function () {
+      classSync.busy = false;
+      if (state.classesUpdated === sentAt) { state.classesDirty = false; save(); }
+      classSync.msg = 'Class lists saved to the school Sheet ✓';
+      showClassSync();
+      if (state.classesDirty) saveClassesToSheet();
+    }, function (err) {
+      classSync.busy = false; classSync.msg = 'Class lists not saved to the Sheet yet: ' + err.message; showClassSync();
+    });
+  }
+
+  function loadClassesFromSheet() {
+    if (!sheetClasses()) return;
+    var teacher = state.settings.teacher;
+    send({ action: 'loadClasses', teacher: teacher }).then(function (r) {
+      if (teacher !== state.settings.teacher) return;
+      if (r.classes && r.updated > state.classesUpdated && !state.classesDirty) {
+        state.classes = r.classes.map(function (k) {
+          return { id: String(k.id || uid()), name: String(k.name || 'Class'), students: parseNames((k.students || []).join('\n')) };
+        });
+        state.classesUpdated = r.updated;
+        if (!classById(state.currentId)) state.currentId = state.classes.length ? state.classes[0].id : null;
+        if (view === 'settings') editId = state.currentId;
+        classSync.msg = 'Loaded ' + state.classes.length + ' class' + (state.classes.length === 1 ? '' : 'es') + ' from the school Sheet ✓';
+        save(); render();
+      } else if (state.classes.some(function (k) { return k.students.length; }) && (state.classesDirty || !r.classes || r.updated < state.classesUpdated)) {
+        state.classesDirty = true; save();
+        saveClassesToSheet();
+      } else {
+        classSync.msg = r.classes ? 'Class lists match the school Sheet ✓' : '';
+        showClassSync();
+      }
+    }, function () {});
+  }
+
+  function showClassSync() {
+    var el = root.querySelector('#classSync');
+    if (el) el.textContent = classSync.msg;
   }
 
   /* =====================================================================
@@ -508,14 +575,16 @@
 
     /* ---- Teacher ---- */
     h += '<section><h3>1. Your name</h3>' +
-      '<p>Used to name your tabs in the school’s Toilet Pass Sheet, so your classes never mix with anyone else’s.</p>' +
+      '<p>Used to name your tabs in the school’s Toilet Pass Sheet, so your classes never mix with anyone else’s. On a new computer, type the same name and your class lists load from the Sheet.</p>' +
       '<label for="teacher">Your name <span class="small">(e.g. Mr Smith)</span></label>' +
       '<input type="text" id="teacher" maxlength="40" value="' + esc(s.teacher) + '" placeholder="Mr Smith">' +
       '<div class="row"><button class="btn dark" data-act="saveTeacher">Save name</button></div><div class="msg" id="teacherMsg"></div></section>';
 
     /* ---- Classes ---- */
     h += '<section><h3>2. Classes</h3>';
-    h += '<p>Pick a class to edit it, or add a new one. Paste names one per line (you can copy a column straight from a spreadsheet).</p>';
+    h += '<p>Pick a class to edit it, or add a new one. Paste names one per line (you can copy a column straight from a spreadsheet).' +
+      (sheetClasses() ? ' Your lists are saved to the school Sheet, so they load on any computer when you type your name.' : '') + '</p>';
+    h += '<p class="sync-line" id="classSync">' + esc(classSync.msg) + '</p>';
     h += '<div class="class-list">';
     state.classes.forEach(function (k) {
       h += '<button class="chip' + (ed && ed.id === k.id ? ' on' : '') + '" data-act="editClass" data-id="' + esc(k.id) + '">' + esc(k.name) + ' (' + k.students.length + ')</button>';
@@ -676,7 +745,7 @@
     if (clash) { setMsg('classMsg', 'Another class already has that name. Each class needs its own name so it gets its own tab.'); return; }
     k.name = name; k.students = names;
     state.currentId = k.id;
-    save(); render();
+    save(); classesChanged(); render();
     setMsg('classMsg', 'Saved ' + esc(name) + ' with ' + names.length + ' student' + (names.length === 1 ? '' : 's') + '.');
   }
 
@@ -686,7 +755,7 @@
     delete state.out[editId];
     if (state.currentId === editId) state.currentId = state.classes.length ? state.classes[0].id : null;
     editId = state.currentId; confirmDelete = false;
-    save(); render();
+    save(); classesChanged(); render();
   }
 
   /* ---- Teacher name ---- */
@@ -695,6 +764,7 @@
     if (!t) { setMsg('teacherMsg', 'Please type your name.'); return; }
     var changed = state.settings.teacher && state.settings.teacher !== t;
     state.settings.teacher = t; save(); render();
+    if (changed || !state.classesUpdated) loadClassesFromSheet(); else saveClassesToSheet();
     setMsg('teacherMsg', 'Saved.' + (changed ? ' New trips will go to tabs starting with “' + esc(t) + '”. Earlier trips stay in the old tabs.' : ''));
   }
 
@@ -722,6 +792,7 @@
         state.currentId = state.classes.length ? state.classes[0].id : null;
         editId = state.currentId;
         save(); render();
+        classesChanged();
         setMsg('backupMsg', 'Loaded ' + state.classes.length + ' class' + (state.classes.length === 1 ? '' : 'es') + '.');
         flush();
       } catch (e) { setMsg('backupMsg', 'That file isn’t a Toilet Pass backup.'); }
@@ -834,6 +905,7 @@
   // Ask which connector version is deployed. Older ones can't send today's trips back.
   if (linked()) send({ action: 'ping' }).then(function (r) {
     sync.version = +r.version || 1;
+    loadClassesFromSheet();
     var c = currentClass();
     if (c) fetchToday(c, true);
     if (view !== 'settings') render();
