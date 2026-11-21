@@ -23,13 +23,19 @@
 const SHEET_URL = 'PASTE YOUR GOOGLE SHEET LINK HERE';
 const KEY = 'e8e5efaa70e253484909a21e';
 const HEADERS = ['Date', 'Student', 'Partner', 'Time Out', 'Time Back', 'Minutes Away', 'Trip ID'];
+const VERSION = 3;   // Toilet Pass checks this before using today's trips or saved class lists
+const CLASSES_TAB = 'Toilet Pass Classes';   // hidden tab holding each teacher's class lists
 
 function doPost(e) {
   try {
     const d = JSON.parse(e.postData.contents);
     if (d.key !== KEY) return reply({ ok: false, error: 'The connector key does not match. Ask whoever set up Toilet Pass.' });
     const ss = SpreadsheetApp.openByUrl(SHEET_URL);
-    if (d.action === 'ping') return reply({ ok: true, name: ss.getName() });
+    if (d.action === 'ping') return reply({ ok: true, name: ss.getName(), version: VERSION });
+    if (d.action === 'today') return reply({ ok: true, trips: todaysTrips(ss, d.className, d.date) });
+    if (d.action === 'loadClasses') return reply(Object.assign({ ok: true }, loadClasses(ss, d.teacher)));
+    if (d.action === 'saveClasses') return reply(saveClasses(ss, d.teacher, d.classes, d.updated));
+    if (['out', 'back', 'cancel'].indexOf(d.action) < 0 || !d.id) return reply({ ok: false, error: 'Unknown request.' });
 
     const lock = LockService.getScriptLock();
     lock.waitLock(20000);
@@ -54,15 +60,85 @@ function doPost(e) {
   }
 }
 
+// Today's trips for one class tab. Only the most recent rows are read, since today's are at the bottom.
+function todaysTrips(ss, className, date) {
+  const sh = ss.getSheetByName(tabName(className));
+  if (!sh || sh.getLastRow() < 2) return [];
+  const last = sh.getLastRow(), first = Math.max(2, last - 299);
+  const range = sh.getRange(first, 1, last - first + 1, 7);
+  const values = range.getValues(), shown = range.getDisplayValues();
+  const tz = ss.getSpreadsheetTimeZone();
+  const trips = [];
+  values.forEach((row, i) => {
+    const day = row[0] instanceof Date ? Utilities.formatDate(row[0], tz, 'yyyy-MM-dd') : String(row[0]);
+    if (day !== date || !row[6]) return;
+    trips.push({ id: String(row[6]), student: String(row[1]), partner: String(row[2]),
+      timeOut: shown[i][3], timeBack: shown[i][4], minutes: row[5] === '' ? '' : Number(row[5]) });
+  });
+  return trips;
+}
+
+// Each teacher's class lists live in one row of a hidden tab, so they survive a wiped computer.
+function classesTab(ss) {
+  let sh = ss.getSheetByName(CLASSES_TAB);
+  if (!sh) {
+    sh = ss.insertSheet(CLASSES_TAB);
+    sh.getRange(1, 1, 1, 3).setValues([['Teacher', 'Classes', 'Updated']]).setFontWeight('bold');
+    sh.setFrozenRows(1);
+    try { sh.hideSheet(); } catch (err) { /* can't hide the only visible tab */ }
+  }
+  return sh;
+}
+
+function teacherRow(sh, teacher) {
+  if (sh.getLastRow() < 2) return 0;
+  const hit = sh.getRange(2, 1, sh.getLastRow() - 1, 1).createTextFinder(teacher).matchEntireCell(true).matchCase(false).findNext();
+  return hit ? hit.getRow() : 0;
+}
+
+function loadClasses(ss, teacher) {
+  teacher = String(teacher || '').trim();
+  if (!teacher) return { classes: null, updated: 0 };
+  const sh = classesTab(ss), row = teacherRow(sh, teacher);
+  if (!row) return { classes: null, updated: 0 };
+  const v = sh.getRange(row, 2, 1, 2).getValues()[0];
+  let classes = null;
+  try { classes = JSON.parse(v[0]); } catch (err) { classes = null; }
+  return { classes: Array.isArray(classes) ? classes : null, updated: Number(v[1]) || 0 };
+}
+
+function saveClasses(ss, teacher, classes, updated) {
+  teacher = String(teacher || '').trim();
+  if (!teacher || !Array.isArray(classes)) return { ok: false, error: 'Nothing to save.' };
+  const json = JSON.stringify(classes);
+  if (json.length > 45000) return { ok: false, error: 'The class lists are too long to save.' };
+  const lock = LockService.getScriptLock();
+  lock.waitLock(20000);
+  try {
+    const sh = classesTab(ss), row = teacherRow(sh, teacher);
+    const values = [[teacher, json, String(Number(updated) || Date.now())]];
+    sh.getRange(1, 2, sh.getMaxRows(), 2).setNumberFormat('@');   // keep the lists and time as plain text
+    if (row) sh.getRange(row, 1, 1, 3).setValues(values);
+    else sh.getRange(sh.getLastRow() + 1, 1, 1, 3).setValues(values);
+  } finally {
+    lock.releaseLock();
+  }
+  return { ok: true };
+}
+
 // Opening the Web app URL in a browser shows this, which is a quick way to check it's working.
 function doGet() {
   let name = '';
   try { name = SpreadsheetApp.openByUrl(SHEET_URL).getName(); } catch (err) { name = 'ERROR: ' + err.message; }
-  return reply({ ok: true, message: 'Toilet Pass connector is running.', sheet: name });
+  return reply({ ok: true, message: 'Toilet Pass connector is running.', sheet: name, version: VERSION });
+}
+
+function tabName(name) {
+  return String(name || 'Class').replace(/[\[\]\*\?\/\\:]/g, ' ').trim().slice(0, 90) || 'Class';
 }
 
 function getTab(ss, name) {
-  name = String(name || 'Class').replace(/[\[\]\*\?\/\\:]/g, ' ').trim().slice(0, 90) || 'Class';
+  name = tabName(name);
   let sh = ss.getSheetByName(name);
   if (!sh) {
     sh = ss.insertSheet(name);
