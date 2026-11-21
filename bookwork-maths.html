@@ -203,29 +203,27 @@
   #pkPick { font-size: 20px; padding: 12px; }
   .pk-left { font-size: 13px; color: #444; text-align: center; }
   .pk-left button { font-size: 13px; padding: 2px 8px; border-width: 2px; margin-left: 4px; }
-  .pk-tps { border: 3px solid var(--p-edge); border-radius: 10px; padding: 10px; text-align: center; display: flex; flex-direction: column; gap: 6px; }
-  .pk-tps[hidden], #pkEdit[hidden] { display: none; }
-  .pk-phase { font-size: 22px; font-weight: 700; color: var(--p-edge); text-transform: uppercase; letter-spacing: 2px; }
-  .pk-secs { font-size: 52px; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; }
-  .pk-bar { height: 8px; background: #E3E3E3; border-radius: 4px; overflow: hidden; }
-  .pk-bar i { display: block; height: 100%; width: 100%; background: var(--p-edge); transition: width .25s linear; }
-  .pk-hint { font-size: 14px; }
-  .pk-tps .pk-row { justify-content: center; }
+  #pkEdit[hidden] { display: none; }
   .pk-lab { display: flex; flex-direction: column; gap: 4px; font-size: 14px; font-weight: 700; }
   #pkEdit { display: flex; flex-direction: column; gap: 10px; }
   #pkEditNames { min-height: 260px; font-family: inherit; font-size: 15px; border: 3px solid #000; border-radius: 6px; padding: 6px; resize: vertical; }
-  .card.tps-on { box-shadow: 0 0 0 5px var(--p-edge); }
-  .controls [data-a="tps"] { margin-left: auto; }
-  body.no-tps .controls [data-a="tps"] { display: none; }
-  @media (max-width: 1700px) and (min-width: 1001px) {
+  @media (min-width: 1001px) {
     header .seg span { display: none; }
     header .seg button { min-width: 40px; padding: 8px 8px; }
     header #practiseSel { max-width: 176px; }
     header { gap: 6px; }
   }
+  @media (max-width: 1500px) and (min-width: 1001px) {
+    header .seg button { min-width: 34px; padding: 7px 7px; }
+    header #levelSeg button { min-width: 0; padding: 7px 6px; font-size: 15px; }
+    header #practiseSel { max-width: 160px; }
+    header .clock { font-size: 19px; padding: 0 2px; }
+  }
   @media (max-width: 1330px) and (min-width: 1001px) {
-    header #practiseSel { max-width: 150px; }
-    header .seg button { min-width: 36px; padding: 7px 7px; }
+    header #practiseSel { max-width: 130px; }
+    header .seg button { min-width: 30px; padding: 7px 6px; font-size: 16px; }
+    header button { padding: 7px 7px; }
+    #timerBtn { min-width: 84px; }
   }
   @media (max-width: 1000px) { body.picker-open #gridFit, body.picker-open #topics { margin-right: 0; } #picker { box-shadow: -8px 0 24px rgba(0,0,0,.2); } }
   .p .num { color: var(--p-edge); }
@@ -234,6 +232,17 @@
   .grid.napk .card { min-height: 230px; }
   .grid.napk .q { font-size: 36px; }
   .grid.napk .num small { font-size: 13px; letter-spacing: 1px; }
+  .tps-head { grid-column: 1 / -1; border: 4px solid var(--p-edge); border-radius: 10px; padding: 14px 18px; display: flex; flex-direction: column; gap: 12px; }
+  .tps-steps { display: flex; gap: 8px; flex-wrap: wrap; }
+  .tps-steps span { padding: 5px 14px; border: 2px solid #BDBDBD; border-radius: 20px; font-size: 16px; font-weight: 700; color: #777; }
+  .tps-steps span.done { border-color: var(--p-edge); color: var(--p-edge); }
+  .tps-steps span.on { background: var(--p-edge); border-color: var(--p-edge); color: #fff; }
+  .tps-say { font-size: 30px; font-weight: 700; line-height: 1.3; }
+  .tps-name { color: var(--p-edge); }
+  .tps-stems { margin: 0; padding-left: 30px; font-size: 26px; line-height: 1.5; }
+  .tps-btns { display: flex; gap: 10px; flex-wrap: wrap; }
+  .grid.ntps .controls { display: none; }
+  .grid.ntps .card { min-height: 0; }
   .apk-head { grid-column: 1 / -1; display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; padding: 2px 2px 4px; }
   .apk-head b { font-size: 24px; color: var(--p-edge); }
   .apk-head span { font-size: 18px; color: #444; }
@@ -361,7 +370,7 @@
         <div class="tp-row"><button class="primary" id="tPause">Pause</button><button id="tReset">Reset</button></div>
       </div>
     </div>
-    <div class="seg" id="countSeg"><span>Show</span><button data-n="apk" title="Activate prior knowledge: warm-up questions on the skills this topic needs">APK</button><button data-n="1">1</button><button data-n="3">3</button><button data-n="12">12</button></div>
+    <div class="seg" id="countSeg"><span>Show</span><button data-n="apk" title="Activate prior knowledge: warm-up questions on the skills this topic needs">APK</button><button data-n="tps" title="Think-Pair-Share: one orange or red question for partners to solve together">TPS</button><button data-n="1">1</button><button data-n="3">3</button><button data-n="12">12</button></div>
     <div class="seg" id="levelSeg"><button data-l="1" class="g">★</button><button data-l="2" class="o">★★</button><button data-l="3" class="r">★★★</button></div>
     <button class="primary" id="gen">Generate 12 problems</button>
     <button id="revealAll">Reveal all</button>
@@ -385,13 +394,6 @@
       <span class="hint">Printing works when the file is opened in Chrome. Choose A4, no scaling.</span>
     </div>
     <div class="opt-row">
-      <b>Think-Pair-Share</b>
-      <label class="chk"><input type="checkbox" id="tpsOn" checked> Show TPS buttons</label>
-      <label class="chk">Think <select id="tpsThink" class="sel"><option>10</option><option>15</option><option selected>20</option><option>30</option><option>45</option><option>60</option></select> s</label>
-      <label class="chk">Pair <select id="tpsPair" class="sel"><option>20</option><option>30</option><option selected>40</option><option>60</option><option>90</option><option>120</option></select> s</label>
-      <span class="hint">Tap TPS on a question. The picker chooses who shares.</span>
-    </div>
-    <div class="opt-row">
       <b>When I tap Show answer, show</b>
       <div class="seg" id="ansSeg"><button data-mode="num">Answer only</button><button data-mode="steps">Answer and steps</button></div>
     </div>
@@ -411,13 +413,6 @@
   <div class="pk-head"><b>Picker</b><button id="pkClose" title="Hide the picker" aria-label="Hide the picker">»</button></div>
   <div class="pk-row"><select id="pkClass" class="sel" aria-label="Class"></select><button id="pkEditBtn" title="Edit class lists" aria-label="Edit class lists">✎</button></div>
   <div id="pkMain">
-    <div id="pkTps" class="pk-tps" hidden>
-      <div class="pk-phase" id="pkPhase">Think</div>
-      <div class="pk-secs" id="pkSecs">20</div>
-      <div class="pk-bar"><i id="pkBar"></i></div>
-      <div class="pk-hint" id="pkHint">No talking. Think on your own.</div>
-      <div class="pk-row"><button id="pkSkip">Next ▸</button><button id="pkStop">Stop</button></div>
-    </div>
     <div id="pkName" class="pk-name">—</div>
     <button class="primary" id="pkPick">Pick</button>
     <div class="pk-left" id="pkLeft"></div>
@@ -2095,7 +2090,8 @@ let { GEN, TOPICS } = STAGES[stage];
 
 const LEVELS = [null, { cls: 'g', stars: '★' }, { cls: 'o', stars: '★★' }, { cls: 'r', stars: '★★★' }];
 const PLANS = { 12: [1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3], 3: [1, 2, 3] }; // a column of 4 per level
-let count = 12, singleLevel = 1, apkMode = false;
+let count = 12, singleLevel = 1, apkMode = false, tpsMode = false, tpsLevel = 2, tpsPhase = 0, tpsName = '';
+try { if (localStorage.getItem('bookworkTPSLevel') === '3') tpsLevel = 3; } catch (e) {}
 try { const c = +localStorage.getItem('bookworkCount'); if ([1, 3, 12].includes(c)) count = c; const l = +localStorage.getItem('bookworkLevel'); if ([1, 2, 3].includes(l)) singleLevel = l; } catch (e) {}
 const planFor = () => count === 1 ? [singleLevel] : PLANS[count];
 
@@ -2534,6 +2530,33 @@ function generateAPK() {
   problems = Array.from({ length: APK_COUNT }, (_, i) => { const p = apkProblem(order[i % order.length], practise, used); used.add(p.q); return p; });
 }
 
+/* =================== think-pair-share mode =================== */
+// One orange or red question. The teacher taps through Think, Pair, Share and Answer.
+const TPS_STEPS = ['Think', 'Pair', 'Share', 'Answer'];
+const TPS_STEMS = ['We got ___ because ___.', 'First we ___, then we ___.', 'I agree / disagree with my partner because ___.'];
+function tpsPanel() {
+  const el = document.createElement('div'); el.className = 'tps-head';
+  const steps = TPS_STEPS.map((t, i) => `<span class="${i === tpsPhase ? 'on' : i < tpsPhase ? 'done' : ''}">${i + 1}. ${t}</span>`).join('');
+  let say = '', extra = '', btns = '';
+  if (tpsPhase === 0) { say = 'Think on your own. Solve it on your whiteboard. No talking yet.'; btns = '<button class="primary" data-t="next">Pair ▸</button>'; }
+  else if (tpsPhase === 1) { say = 'Pair. Work it out together with your partner.'; extra = '<ul class="tps-stems">' + TPS_STEMS.map(t => `<li>${t}</li>`).join('') + '</ul>'; btns = '<button class="primary" data-t="next">Share ▸</button>'; }
+  else if (tpsPhase === 2) { say = (tpsName ? `<span class="tps-name">${tpsName.replace(/</g, '&lt;')}</span>, ` : 'Picking… ') + 'what did you get? How did you get there?'; btns = '<button data-t="again">Pick another</button><button class="primary" data-t="next">Show answer ▸</button>'; }
+  else { say = 'Did your pair get the same? If not, where did your thinking change?'; btns = '<button class="primary" data-t="new">Next question ▸</button>'; }
+  el.innerHTML = `<div class="tps-steps">${steps}</div><div class="tps-say">${say}</div>${extra}<div class="tps-btns">${btns}</div>`;
+  el.querySelectorAll('[data-t]').forEach(b => b.onclick = () => {
+    const t = b.dataset.t;
+    if (t === 'new') { generate(); return; }
+    if (t === 'next') tpsPhase++;
+    if (tpsPhase === 2 && (t === 'next' || t === 'again')) { tpsName = ''; render(); tpsPickSharer(); return; }
+    render();
+  });
+  return el;
+}
+function tpsPickSharer() {
+  pk.open = true; pkSave(); pkRender(); queueZoom();
+  pkPick(name => { tpsName = name; if (tpsMode && tpsPhase === 2) render(); });
+}
+
 /* =================== problem set =================== */
 const grid = document.getElementById('grid');
 let problems = [];
@@ -2549,6 +2572,12 @@ function generate() {
     render(); return;
   }
   if (!selected.size) { selected = new Set(TOPICS.map(t => t.id)); renderChips(); }
+  if (tpsMode) {
+    const topic = practise !== 'review' && GEN[practise] ? practise : pick([...selected]);
+    problems = [makeProblem(tpsLevel, topic, new Set())];
+    tpsPhase = 0; tpsName = '';
+    render(); return;
+  }
   const pool = [...selected];
   let bag = [];
   const used = new Set();
@@ -2569,7 +2598,8 @@ function generate() {
 }
 function render() {
   grid.innerHTML = '';
-  grid.className = 'grid' + (apkMode ? ' napk' : count === 1 ? ' n1' : count === 3 ? ' n3' : ' n12');
+  grid.className = 'grid' + (apkMode ? ' napk' : tpsMode ? ' n1 ntps' : count === 1 ? ' n1' : count === 3 ? ' n3' : ' n12');
+  if (tpsMode) grid.appendChild(tpsPanel());
   if (apkMode) {
     const head = document.createElement('div'); head.className = 'apk-head';
     head.innerHTML = practise === 'review' || !GEN[practise]
@@ -2578,6 +2608,7 @@ function render() {
     grid.appendChild(head);
   }
   problems.forEach((p, i) => grid.appendChild(cardFor(p, i)));
+  if (tpsMode && tpsPhase >= 3) grid.querySelectorAll('.card').forEach(c => c.classList.add('show'));
   allShown = false; document.getElementById('revealAll').textContent = 'Reveal all';
 }
 function cardFor(p, i) {
@@ -2591,9 +2622,8 @@ function cardFor(p, i) {
        <div class="topic">${topic}</div>
        <div class="q">${emph(p.q)}</div>
        <div class="ans"><ol>${p.s.map(x => '<li>' + x + '</li>').join('')}</ol><div class="final">Answer &nbsp;${p.a}</div></div>
-       <div class="controls"><button data-a="show">Show answer</button><button data-a="new">New problem</button><button data-a="tps" title="Think-Pair-Share this question">TPS</button></div>
+       <div class="controls"><button data-a="show">Show answer</button><button data-a="new">New problem</button></div>
      </div>`;
-  card.querySelector('[data-a="tps"]').onclick = () => tpsStart(card);
   const showBtn = card.querySelector('[data-a="show"]');
   showBtn.onclick = () => { card.classList.toggle('show'); showBtn.textContent = card.classList.contains('show') ? 'Hide answer' : 'Show answer'; };
   card.querySelector('[data-a="new"]').onclick = () => {
@@ -2683,9 +2713,12 @@ document.getElementById('allOff').onclick = () => { selected = new Set(); saveTo
 
 function syncControls() {
   document.querySelectorAll('#stageSeg button').forEach(b => b.classList.toggle('on', +b.dataset.s === stage));
-  document.querySelectorAll('#countSeg button').forEach(b => b.classList.toggle('on', b.dataset.n === 'apk' ? apkMode : !apkMode && +b.dataset.n === count));
-  document.querySelectorAll('#levelSeg button').forEach(b => b.classList.toggle('on', +b.dataset.l === singleLevel));
-  document.getElementById('levelSeg').classList.toggle('show', count === 1 && !apkMode);
+  document.querySelectorAll('#countSeg button').forEach(b => b.classList.toggle('on', b.dataset.n === 'apk' ? apkMode : b.dataset.n === 'tps' ? tpsMode : !apkMode && !tpsMode && +b.dataset.n === count));
+  document.querySelectorAll('#levelSeg button').forEach(b => {
+    b.classList.toggle('on', +b.dataset.l === (tpsMode ? tpsLevel : singleLevel));
+    b.style.display = tpsMode && b.dataset.l === '1' ? 'none' : '';
+  });
+  document.getElementById('levelSeg').classList.toggle('show', tpsMode || (count === 1 && !apkMode));
   document.getElementById('gen').textContent = 'Generate';
   try { localStorage.setItem('bookworkCount', count); localStorage.setItem('bookworkLevel', singleLevel); } catch (e) {}
 }
@@ -2695,10 +2728,15 @@ document.querySelectorAll('#stageSeg button').forEach(b => b.onclick = () => {
   loadSelected(); loadFocus(); syncMix(); renderChips(); syncControls(); generate();
 });
 document.querySelectorAll('#countSeg button').forEach(b => b.onclick = () => {
-  if (b.dataset.n === 'apk') apkMode = true; else { apkMode = false; count = +b.dataset.n; }
+  apkMode = b.dataset.n === 'apk'; tpsMode = b.dataset.n === 'tps';
+  if (!apkMode && !tpsMode) count = +b.dataset.n;
   syncControls(); generate();
 });
-document.querySelectorAll('#levelSeg button').forEach(b => b.onclick = () => { singleLevel = +b.dataset.l; syncControls(); generate(); });
+document.querySelectorAll('#levelSeg button').forEach(b => b.onclick = () => {
+  if (tpsMode) { tpsLevel = +b.dataset.l; try { localStorage.setItem('bookworkTPSLevel', tpsLevel); } catch (e) {} }
+  else singleLevel = +b.dataset.l;
+  syncControls(); generate();
+});
 
 /* =================== print in the pre/post test format =================== */
 function printHTML() {
@@ -2959,63 +2997,6 @@ $pk('pkPick').onclick = () => pkPick();
 $pk('pkClose').onclick = () => { pk.open = false; pkSave(); pkRender(); queueZoom(); };
 $pk('pickerTab').onclick = () => { pk.open = true; pkSave(); pkRender(); queueZoom(); };
 
-/* ---------- think-pair-share ---------- */
-let tps = null;
-try { const t = JSON.parse(localStorage.getItem('bookworkTPS') || 'null'); if (t) { $pk('tpsThink').value = t[0]; $pk('tpsPair').value = t[1]; } } catch (e) {}
-function tpsShow(on) { document.body.classList.toggle('no-tps', !on); $pk('tpsOn').checked = on; if (!on) tpsStop(); }
-try { tpsShow(localStorage.getItem('bookworkTPSon') !== '0'); } catch (e) {}
-$pk('tpsOn').onchange = e => { tpsShow(e.target.checked); try { localStorage.setItem('bookworkTPSon', e.target.checked ? '1' : '0'); } catch (err) {} };
-['tpsThink', 'tpsPair'].forEach(id => $pk(id).onchange = () => { try { localStorage.setItem('bookworkTPS', JSON.stringify([+$pk('tpsThink').value, +$pk('tpsPair').value])); } catch (e) {} });
-const TPS_PHASES = [
-  { key: 'think', label: 'Think', hint: 'No talking. Think on your own.' },
-  { key: 'pair', label: 'Pair', hint: 'Talk it through with your partner.' },
-  { key: 'share', label: 'Share', hint: '' }
-];
-function tpsBeep() {
-  try { const ac = tpsBeep.ac || (tpsBeep.ac = new (window.AudioContext || window.webkitAudioContext)()); const o = ac.createOscillator(), g = ac.createGain();
-    o.frequency.value = 660; g.gain.setValueAtTime(.12, ac.currentTime); g.gain.exponentialRampToValueAtTime(.001, ac.currentTime + .35);
-    o.connect(g); g.connect(ac.destination); o.start(); o.stop(ac.currentTime + .36); } catch (e) {}
-}
-function tpsStart(card) {
-  tpsStop();
-  pk.open = true; pkSave(); pkCloseEdit(); queueZoom();
-  card.classList.add('tps-on');
-  $pk('pkName').textContent = '—';
-  tps = { card, phase: -1, timer: null };
-  tpsNext();
-}
-function tpsNext() {
-  if (!tps) return;
-  tps.phase++;
-  const ph = TPS_PHASES[tps.phase];
-  if (!ph) { tpsStop(); return; }
-  $pk('pkTps').hidden = false;
-  $pk('pkPhase').textContent = ph.label; $pk('pkHint').textContent = ph.hint;
-  clearInterval(tps.timer);
-  if (tps.phase > 0) tpsBeep();
-  if (ph.key === 'share') {
-    $pk('pkSecs').textContent = ''; $pk('pkBar').style.width = '0%';
-    $pk('pkSkip').textContent = 'Done';
-    pkPick(name => { $pk('pkName').classList.add('share'); $pk('pkHint').textContent = name + ', share your thinking.'; });
-    return;
-  }
-  $pk('pkSkip').textContent = 'Next ▸';
-  const total = +$pk(ph.key === 'think' ? 'tpsThink' : 'tpsPair').value, end = Date.now() + total * 1000;
-  const tick = () => {
-    const left = Math.max(0, Math.ceil((end - Date.now()) / 1000));
-    $pk('pkSecs').textContent = left; $pk('pkBar').style.width = (100 * left / total) + '%';
-    if (left <= 0) tpsNext();
-  };
-  tick(); tps.timer = setInterval(tick, 250);
-}
-function tpsStop() {
-  if (!tps) return;
-  clearInterval(tps.timer); tps.card.classList.remove('tps-on'); tps = null;
-  $pk('pkTps').hidden = true; $pk('pkName').classList.remove('share');
-}
-$pk('pkSkip').onclick = tpsNext;
-$pk('pkStop').onclick = tpsStop;
-new MutationObserver(() => { if (tps && !tps.card.isConnected) tpsStop(); }).observe(grid, { childList: true });
 pkRender();
 
 syncMix();
