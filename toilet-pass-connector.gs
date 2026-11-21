@@ -23,13 +23,16 @@
 const SHEET_URL = 'PASTE YOUR GOOGLE SHEET LINK HERE';
 const KEY = 'e8e5efaa70e253484909a21e';
 const HEADERS = ['Date', 'Student', 'Partner', 'Time Out', 'Time Back', 'Minutes Away', 'Trip ID'];
+const VERSION = 2;   // Toilet Pass checks this before asking for today's trips
 
 function doPost(e) {
   try {
     const d = JSON.parse(e.postData.contents);
     if (d.key !== KEY) return reply({ ok: false, error: 'The connector key does not match. Ask whoever set up Toilet Pass.' });
     const ss = SpreadsheetApp.openByUrl(SHEET_URL);
-    if (d.action === 'ping') return reply({ ok: true, name: ss.getName() });
+    if (d.action === 'ping') return reply({ ok: true, name: ss.getName(), version: VERSION });
+    if (d.action === 'today') return reply({ ok: true, trips: todaysTrips(ss, d.className, d.date) });
+    if (['out', 'back', 'cancel'].indexOf(d.action) < 0 || !d.id) return reply({ ok: false, error: 'Unknown request.' });
 
     const lock = LockService.getScriptLock();
     lock.waitLock(20000);
@@ -54,15 +57,37 @@ function doPost(e) {
   }
 }
 
+// Today's trips for one class tab. Only the most recent rows are read, since today's are at the bottom.
+function todaysTrips(ss, className, date) {
+  const sh = ss.getSheetByName(tabName(className));
+  if (!sh || sh.getLastRow() < 2) return [];
+  const last = sh.getLastRow(), first = Math.max(2, last - 299);
+  const range = sh.getRange(first, 1, last - first + 1, 7);
+  const values = range.getValues(), shown = range.getDisplayValues();
+  const tz = ss.getSpreadsheetTimeZone();
+  const trips = [];
+  values.forEach((row, i) => {
+    const day = row[0] instanceof Date ? Utilities.formatDate(row[0], tz, 'yyyy-MM-dd') : String(row[0]);
+    if (day !== date || !row[6]) return;
+    trips.push({ id: String(row[6]), student: String(row[1]), partner: String(row[2]),
+      timeOut: shown[i][3], timeBack: shown[i][4], minutes: row[5] === '' ? '' : Number(row[5]) });
+  });
+  return trips;
+}
+
 // Opening the Web app URL in a browser shows this, which is a quick way to check it's working.
 function doGet() {
   let name = '';
   try { name = SpreadsheetApp.openByUrl(SHEET_URL).getName(); } catch (err) { name = 'ERROR: ' + err.message; }
-  return reply({ ok: true, message: 'Toilet Pass connector is running.', sheet: name });
+  return reply({ ok: true, message: 'Toilet Pass connector is running.', sheet: name, version: VERSION });
+}
+
+function tabName(name) {
+  return String(name || 'Class').replace(/[\[\]\*\?\/\\:]/g, ' ').trim().slice(0, 90) || 'Class';
 }
 
 function getTab(ss, name) {
-  name = String(name || 'Class').replace(/[\[\]\*\?\/\\:]/g, ' ').trim().slice(0, 90) || 'Class';
+  name = tabName(name);
   let sh = ss.getSheetByName(name);
   if (!sh) {
     sh = ss.insertSheet(name);

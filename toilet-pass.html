@@ -14,9 +14,17 @@
     --font: 'Montserrat', 'Century Gothic', 'CenturyGothic', AppleGothic, 'Trebuchet MS', sans-serif;
     --bg: #ffffff; --ink: #16181d; --sub: #6b7080; --line: #e2e4e9; --soft: #f4f5f7;
     --red: #d32f2f; --red-dark: #b71c1c;
+    --accent: #4f46e5; --accent-2: #7c3aed; --accent-soft: #eef0ff;
+    --went: #f59e0b; --partner: #0ea5e9;
   }
   * { box-sizing: border-box; }
   html, body { margin: 0; height: 100%; background: var(--bg); color: var(--ink); font-family: var(--font); }
+  body:not(.mini) { background:
+      radial-gradient(520px 420px at 0% 0%, rgba(168, 200, 255, .38), transparent 70%),
+      radial-gradient(520px 420px at 100% 0%, rgba(255, 194, 221, .34), transparent 70%),
+      radial-gradient(520px 420px at 0% 100%, rgba(185, 240, 210, .34), transparent 70%),
+      radial-gradient(520px 420px at 100% 100%, rgba(255, 230, 166, .38), transparent 70%), var(--bg);
+    background-attachment: fixed; }
   button, input, select, textarea { font: inherit; color: inherit; }
   button { cursor: pointer; }
   button:focus-visible, select:focus-visible, input:focus-visible, textarea:focus-visible { outline: 3px solid #9db7ff; outline-offset: 2px; }
@@ -25,7 +33,7 @@
   body.mini #app { max-width: none; }
 
   /* ---------- Top bar ---------- */
-  .bar { display: flex; align-items: center; gap: 8px; padding: 14px 16px; border-bottom: 1px solid var(--line); }
+  .bar { display: flex; align-items: center; gap: 8px; padding: 14px 16px; border-bottom: 1px solid var(--line); background: rgba(255, 255, 255, .7); }
   .bar select { flex: 1; min-width: 0; padding: 9px 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--soft);
     font-weight: 700; font-size: 16px; }
   .icon-btn { flex: none; width: 42px; height: 42px; display: grid; place-items: center; border: 1px solid var(--line); border-radius: 12px; background: var(--bg); color: var(--sub); }
@@ -36,10 +44,10 @@
 
   /* ---------- Home ---------- */
   .home { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; text-align: center; }
-  .big { width: 100%; max-width: 380px; min-height: 220px; padding: 24px 20px; border: 0; border-radius: 28px; background: var(--ink); color: var(--bg);
+  .big { width: 100%; max-width: 380px; min-height: 220px; padding: 24px 20px; border: 0; border-radius: 28px; background: linear-gradient(145deg, var(--accent), var(--accent-2)); color: var(--bg);
     font-size: 22px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 12px;
-    box-shadow: 0 12px 30px -14px rgba(22, 24, 29, .45); transition: transform .12s, background .2s; }
-  .big:hover { background: #2b2e36; }
+    box-shadow: 0 14px 32px -14px rgba(79, 70, 229, .6); transition: transform .12s, filter .2s; }
+  .big:hover { filter: brightness(1.08); }
   .big:active { transform: scale(.98); }
   .big svg { width: 1.1em; height: 1.1em; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
   .big.icon-only svg.loo { width: 110px; height: 110px; stroke-width: 1.5; }
@@ -58,7 +66,8 @@
   .names { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
   .name { padding: 16px 10px; border: 1px solid var(--line); border-radius: 14px; background: var(--bg); font-size: 17px; font-weight: 600; word-break: break-word;
     box-shadow: 0 1px 2px rgba(22, 24, 29, .05); }
-  .name:hover { background: var(--ink); border-color: var(--ink); color: var(--bg); }
+  .name { position: relative; background: rgba(255, 255, 255, .85); }
+  .name:hover { background: var(--accent); border-color: var(--accent); color: var(--bg); }
   .name.alone { grid-column: 1 / -1; border-style: dashed; font-weight: 400; color: var(--sub); box-shadow: none; }
   .name.alone:hover { color: var(--bg); }
 
@@ -80,15 +89,45 @@
   .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-top: 14px; }
   .btn { padding: 9px 18px; border: 1px solid #cfd2d9; border-radius: 12px; background: var(--bg); font-weight: 600; font-size: 15px; }
   .btn:hover { background: var(--soft); }
-  .btn.dark { background: var(--ink); border-color: var(--ink); color: var(--bg); }
-  .btn.dark:hover { background: #2b2e36; }
+  .btn.dark { background: var(--accent); border-color: var(--accent); color: var(--bg); }
+  .btn.dark:hover { background: #4338ca; }
   .btn.danger { border-style: dashed; color: var(--red); }
   .class-list { display: flex; flex-wrap: wrap; gap: 6px; }
   .chip { padding: 7px 14px; border: 1px solid #cfd2d9; border-radius: 999px; background: var(--bg); font-size: 14px; font-weight: 600; }
-  .chip.on { background: var(--ink); border-color: var(--ink); color: var(--bg); }
+  .chip.on { background: var(--accent); border-color: var(--accent); color: var(--bg); }
   .msg { margin-top: 10px; padding: 10px 12px; border-radius: 12px; background: var(--soft); font-size: 14px; line-height: 1.45; }
   .msg:empty { display: none; }
   .settings .done-bar { position: sticky; bottom: -20px; background: var(--bg); padding: 12px 0; margin-top: 16px; border-top: 1px solid var(--line); }
+
+  /* ---------- Today: dots, badge, list ---------- */
+  .dots { display: inline-flex; gap: 3px; margin-left: 6px; vertical-align: middle; }
+  .d { display: inline-grid; place-items: center; min-width: 12px; height: 12px; padding: 0 3px; border-radius: 999px;
+    font-style: normal; font-size: 9px; font-weight: 700; line-height: 1; color: #fff; }
+  .d.went { background: var(--went); }
+  .d.partner { background: var(--partner); }
+  .name .dots { position: absolute; top: 6px; right: 6px; margin: 0; }
+  .legend { display: flex; gap: 16px; flex-wrap: wrap; justify-content: center; margin: 14px 0 0; font-size: 13px; color: var(--sub); }
+  .legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .today-btn { position: relative; }
+  .today-btn.on { background: var(--accent-soft); color: var(--accent); border-color: #c7cbff; }
+  .badge { position: absolute; top: -5px; right: -5px; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 999px;
+    background: var(--accent); color: #fff; font-size: 11px; font-weight: 700; display: grid; place-items: center; }
+  .sub-h { font-weight: 600; color: var(--sub); font-size: 16px; margin-left: 6px; }
+  .notice { margin: 0 0 12px; padding: 10px 12px; border-radius: 12px; background: #fff7e6; border: 1px solid #fde3a7; font-size: 14px; line-height: 1.45; }
+  .empty { color: var(--sub); text-align: center; margin: 40px 0; }
+  .trips { list-style: none; margin: 0; padding: 0; border: 1px solid var(--line); border-radius: 16px; overflow: hidden; background: rgba(255, 255, 255, .85); }
+  .trips li { display: grid; grid-template-columns: 80px 1fr auto; gap: 10px; align-items: center; padding: 11px 14px; border-top: 1px solid var(--line); font-size: 15px; }
+  .trips li:first-child { border-top: 0; }
+  .trips .when { color: var(--sub); font-variant-numeric: tabular-nums; font-size: 14px; }
+  .trips .who { font-weight: 600; }
+  .trips .amp { color: var(--sub); font-weight: 400; }
+  .trips .len { color: var(--sub); font-size: 14px; font-variant-numeric: tabular-nums; }
+  .trips li.now { background: #fdecec; }
+  .trips li.now .len { color: var(--red); font-weight: 700; }
+  .tally-h { margin: 22px 0 10px; font-size: 15px; }
+  .tally { display: flex; flex-wrap: wrap; gap: 8px; }
+  .tchip { display: inline-flex; align-items: center; padding: 6px 12px; border: 1px solid var(--line); border-radius: 999px; background: #fff; font-size: 14px; font-weight: 600; }
+  .tchip.many { border-color: #fbbf24; background: #fffbeb; }
 
   /* ---------- Occupied (a pair is out) ---------- */
   .big.occupied { background: var(--red); color: #fff; flex-direction: column; gap: 10px; box-shadow: 0 12px 30px -14px rgba(211, 47, 47, .6); }
@@ -139,7 +178,8 @@
       currentId: null,
       settings: { teacher: '' },
       out: {},                     // classId -> { id, student, partner, outAt }
-      queue: []                    // entries waiting to be written to the Sheet
+      queue: [],                   // entries waiting to be written to the Sheet
+      recent: []                   // this computer's trips from the last two days, a backup for the Today list
     };
   }
 
@@ -152,6 +192,8 @@
         s.settings = Object.assign(b.settings, s.settings || {});
         s.out = s.out || {};
         s.queue = Array.isArray(s.queue) ? s.queue : [];
+        var cutoff = Date.now() - 2 * 864e5;
+        s.recent = (Array.isArray(s.recent) ? s.recent : []).filter(function (r) { return r.outAt > cutoff; });
         return s;
       }
     } catch (e) { /* storage blocked or damaged: start fresh */ }
@@ -174,7 +216,7 @@
   var pending = null;           // { student } while choosing a partner
   var editId = null;            // class being edited in settings
   var confirmDelete = false;
-  var sync = { busy: false, error: '', lastOk: '', inflight: null };
+  var sync = { busy: false, error: '', lastOk: '', inflight: null, version: 0 };
 
   function esc(s) {
     return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
@@ -214,6 +256,8 @@
     gear: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 110 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>',
     popout: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><rect x="12" y="11" width="7" height="6" rx="1"/></svg>',
     close: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>',
+    list: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg>',
+    refresh: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12a8 8 0 11-2.34-5.66L20 8.5"/><path d="M20 3.5v5h-5"/></svg>',
     undo: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 14L4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 010 11H11"/></svg>',
     left: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>'
   };
@@ -252,6 +296,11 @@
       } else {
         html += '<div style="flex:1;font-weight:bold">Toilet Pass</div>';
       }
+      if (c && state.settings.teacher) {
+        var nToday = todayTrips(c).length;
+        html += '<button class="icon-btn today-btn' + (view === 'today' ? ' on' : '') + '" data-act="today" title="Today’s trips">' + ICON.list +
+          (nToday ? '<span class="badge">' + nToday + '</span>' : '') + '</button>';
+      }
       if (!pipWin && !isMini) html += '<button class="icon-btn" data-act="popout" title="Pop out a small window that stays on top">' + ICON.popout + '</button>';
       if (inPopout()) html += '<button class="icon-btn" data-act="collapse" title="Shrink back to the corner">' + ICON.close + '</button>';
       html += '<button class="icon-btn" data-act="settings" title="Settings">' + ICON.gear + '</button>';
@@ -261,18 +310,24 @@
         html += '<div class="home"><p class="out-names" style="font-size:26px">' + (state.settings.teacher ? 'Add a class to get started' : 'Add your name and class list to get started') + '</p>' +
           '<button class="big light" data-act="settings">Set up</button></div>';
       } else if (view === 'pickStudent') {
+        var cts = todayCounts(c);
         html += '<div class="pick-head"><button class="icon-btn" data-act="home" title="Back">' + ICON.left + '</button><h2>Who is going?</h2></div>';
         html += '<div class="names">';
-        c.students.forEach(function (n, i) { html += '<button class="name" data-act="student" data-i="' + i + '">' + esc(n) + '</button>'; });
+        c.students.forEach(function (n, i) { html += '<button class="name" data-act="student" data-i="' + i + '"' + countTitle(cts[n]) + '>' + esc(n) + dots(cts[n]) + '</button>'; });
         html += '</div>';
+        if (Object.keys(cts).length) html += LEGEND;
         if (!c.students.length) html += '<p class="hint">This class has no names yet. Add them in Settings.</p>';
+      } else if (view === 'today') {
+        html += renderToday(c);
       } else if (view === 'pickPartner' && pending) {
         html += '<div class="pick-head"><button class="icon-btn" data-act="pickStudent" title="Back">' + ICON.left + '</button><h2>Who is going with ' + esc(pending.student) + '?</h2></div>';
+        var cts2 = todayCounts(c);
         html += '<div class="names">';
         c.students.forEach(function (n, i) {
-          if (n !== pending.student) html += '<button class="name" data-act="partner" data-i="' + i + '">' + esc(n) + '</button>';
+          if (n !== pending.student) html += '<button class="name" data-act="partner" data-i="' + i + '"' + countTitle(cts2[n]) + '>' + esc(n) + dots(cts2[n]) + '</button>';
         });
         html += '<button class="name alone" data-act="alone">No partner</button></div>';
+        if (Object.keys(cts2).length) html += LEGEND;
       } else {
         var o = state.out[c.id];
         html += '<div class="home">';
@@ -291,6 +346,122 @@
 
     root.innerHTML = html;
     fitWindow();
+    if (c && state.settings.teacher && view !== 'settings') fetchToday(c);
+  }
+
+  /* =====================================================================
+     TODAY: trips are read back from the Google Sheet (the lasting record),
+     merged with anything on this computer that hasn't reached the Sheet yet.
+     ===================================================================== */
+  var todayCache = {};          // classId -> { date, trips, at, loading }
+  var cancelled = {};           // trip ids undone this session
+  function todayKey() { return isoDate(new Date()); }
+  function sheetToday() { return linked() && sync.version >= 2; }
+
+  function clockMins(label) {   // '9:42 am' or '13:05' -> minutes after midnight
+    var m = /(\d{1,2}):(\d{2})(?::\d{2})?\s*([ap])?/i.exec(label || '');
+    if (!m) return 0;
+    var h = +m[1] % (m[3] ? 12 : 24);
+    if (m[3] && m[3].toLowerCase() === 'p') h += 12;
+    return h * 60 + +m[2];
+  }
+
+  function fetchToday(c, force) {
+    if (!c || !sheetToday()) return;
+    var hit = todayCache[c.id], today = todayKey();
+    if (hit && hit.loading) return;
+    if (!force && hit && hit.date === today && Date.now() - hit.at < 60000) return;
+    todayCache[c.id] = { date: today, trips: hit && hit.date === today ? hit.trips : null, at: Date.now(), loading: true };
+    send({ action: 'today', className: tabName(state.settings.teacher, c.name), date: today }).then(function (r) {
+      todayCache[c.id] = { date: today, trips: r.trips || [], at: Date.now(), loading: false };
+      if (view !== 'settings' && !isCollapsed()) render();
+    }, function () {
+      todayCache[c.id].loading = false;
+    });
+  }
+
+  function todayTrips(c) {
+    var today = todayKey(), byId = {}, list = [];
+    var hit = todayCache[c.id];
+    if (hit && hit.date === today && hit.trips) hit.trips.forEach(function (t) {
+      if (cancelled[t.id]) return;
+      byId[t.id] = { id: t.id, student: t.student, partner: t.partner, outLabel: t.timeOut, backLabel: t.timeBack,
+        minutes: t.minutes, sort: clockMins(t.timeOut), out: false };
+    });
+    state.recent.forEach(function (r) {
+      if (r.classId !== c.id || isoDate(new Date(r.outAt)) !== today || cancelled[r.id]) return;
+      var d = new Date(r.outAt), mine = byId[r.id] || {};
+      byId[r.id] = { id: r.id, student: r.student, partner: r.partner, outLabel: shortTime(d),
+        backLabel: r.backAt ? shortTime(new Date(r.backAt)) : (mine.backLabel || ''),
+        minutes: r.backAt ? Math.max(0, Math.round((r.backAt - r.outAt) / 60000)) : (mine.minutes === undefined ? '' : mine.minutes),
+        sort: d.getHours() * 60 + d.getMinutes(), out: false };
+    });
+    var o = state.out[c.id];
+    Object.keys(byId).forEach(function (id) {
+      var t = byId[id];
+      t.out = !!(o && o.id === id);
+      list.push(t);
+    });
+    return list.sort(function (a, b) { return a.sort - b.sort; });
+  }
+
+  function todayCounts(c) {
+    var n = {};
+    function bump(name, key) { if (!name) return; n[name] = n[name] || { went: 0, partner: 0 }; n[name][key]++; }
+    todayTrips(c).forEach(function (t) { bump(t.student, 'went'); bump(t.partner, 'partner'); });
+    return n;
+  }
+
+  function dots(cnt) {
+    if (!cnt) return '';
+    var h = '<span class="dots">';
+    if (cnt.went) h += '<i class="d went">' + (cnt.went > 1 ? cnt.went : '') + '</i>';
+    if (cnt.partner) h += '<i class="d partner">' + (cnt.partner > 1 ? cnt.partner : '') + '</i>';
+    return h + '</span>';
+  }
+  function countTitle(cnt) {
+    if (!cnt) return '';
+    var bits = [];
+    if (cnt.went) bits.push('been ' + cnt.went + '× today');
+    if (cnt.partner) bits.push('partner ' + cnt.partner + '× today');
+    return ' title="' + esc(bits.join(', ')) + '"';
+  }
+  var LEGEND = '<p class="legend"><span><i class="d went"></i> been today</span><span><i class="d partner"></i> been as a partner</span></p>';
+
+  function renderToday(c) {
+    var trips = todayTrips(c), counts = todayCounts(c), hit = todayCache[c.id];
+    var h = '<div class="pick-head"><button class="icon-btn" data-act="home" title="Back">' + ICON.left + '</button>' +
+      '<h2>Today <span class="sub-h">' + esc(c.name) + '</span></h2>' +
+      (sheetToday() ? '<button class="icon-btn" data-act="refreshToday" title="Refresh from the Sheet">' + ICON.refresh + '</button>' : '') + '</div>';
+    if (!sheetToday()) {
+      h += '<p class="notice">' + (linked()
+        ? 'Showing trips from this computer only. Update the Google connector to show every trip from the Sheet.'
+        : 'Showing trips from this computer only.') + '</p>';
+    } else if (hit && hit.loading && !hit.trips) {
+      h += '<p class="hint">Loading from the Sheet…</p>';
+    }
+    if (!trips.length) {
+      h += '<p class="empty">No trips yet today.</p>';
+      return h;
+    }
+    h += '<ol class="trips">';
+    trips.forEach(function (t) {
+      h += '<li' + (t.out ? ' class="now"' : '') + '><span class="when">' + esc(t.outLabel) + '</span>' +
+        '<span class="who">' + esc(t.student) + (t.partner ? ' <span class="amp">&amp;</span> ' + esc(t.partner) : '') + '</span>' +
+        '<span class="len">' + (t.out ? 'out now' : (t.minutes === '' ? '' : esc(t.minutes) + ' min')) + '</span></li>';
+    });
+    h += '</ol>';
+    var names = Object.keys(counts).sort(function (a, b) {
+      var ca = counts[a], cb = counts[b];
+      return (cb.went + cb.partner) - (ca.went + ca.partner) || a.localeCompare(b);
+    });
+    h += '<h3 class="tally-h">Who has been</h3><div class="tally">';
+    names.forEach(function (nm) {
+      var k = counts[nm], total = k.went + k.partner;
+      h += '<span class="tchip' + (total > 1 ? ' many' : '') + '"' + countTitle(k) + '>' + esc(nm) + dots(k) + '</span>';
+    });
+    h += '</div>' + LEGEND;
+    return h;
   }
 
   /* The pop-out stays small, and grows only while names or settings are on screen. */
@@ -403,6 +574,8 @@
       case 'return': endTrip(c); break;
       case 'cancel': cancelTrip(c); break;
       case 'retry': sync.error = ''; flush(); break;
+      case 'today': view = view === 'today' ? 'home' : 'today'; pending = null; render(); fetchToday(c, true); break;
+      case 'refreshToday': fetchToday(c, true); render(); break;
       case 'popout': popOut(); break;
 
       case 'newClass': newClass(); render(); focusLater('#cName'); break;
@@ -423,7 +596,7 @@
   root.addEventListener('change', function (e) {
     var t = e.target;
     if (t.getAttribute('data-change') === 'class') {
-      state.currentId = t.value; view = 'home'; pending = null; save(); render();
+      state.currentId = t.value; view = view === 'today' ? 'today' : 'home'; pending = null; save(); render();
     } else if (t.id === 'importFile' && t.files && t.files[0]) {
       importBackup(t.files[0]);
     }
@@ -452,6 +625,7 @@
     if (!c || state.out[c.id]) { view = 'home'; render(); return; }
     var trip = { id: uid(), student: student, partner: partner, outAt: Date.now() };
     state.out[c.id] = trip;
+    state.recent.push({ id: trip.id, classId: c.id, student: student, partner: partner, outAt: trip.outAt, backAt: null });
     state.queue.push(tripPayload('out', c, trip));
     view = 'home'; pending = null; miniOpen = false;
     save(); render(); flush();
@@ -460,7 +634,9 @@
   function endTrip(c) {
     var trip = c && state.out[c.id];
     if (!trip) return;
-    state.queue.push(tripPayload('back', c, trip, Date.now()));
+    var backAt = Date.now();
+    state.queue.push(tripPayload('back', c, trip, backAt));
+    state.recent.forEach(function (r) { if (r.id === trip.id) r.backAt = backAt; });
     delete state.out[c.id];
     miniOpen = false;
     save(); render(); flush();
@@ -474,6 +650,8 @@
     var before = state.queue.length;
     state.queue = state.queue.filter(function (q) { return q.id !== trip.id || (sending && q === state.queue[0]); });
     if (sending || state.queue.length === before) state.queue.push(tripPayload('cancel', c, trip));
+    state.recent = state.recent.filter(function (r) { return r.id !== trip.id; });
+    cancelled[trip.id] = 1;
     delete state.out[c.id];
     miniOpen = false;
     save(); render(); flush();
@@ -587,6 +765,7 @@
       state.queue = state.queue.filter(function (q) { return q !== item && !(q.id === item.id && q.action === item.action); });
       save();
       sync.busy = false; sync.inflight = null; sync.error = ''; sync.lastOk = shortTime(new Date());
+      if (!state.queue.length) { var cc = currentClass(); if (cc) fetchToday(cc, true); }
       flush();
     }, function (err) {
       sync.busy = false; sync.inflight = null; sync.error = err.message; refreshStatus();
@@ -652,6 +831,13 @@
 
   render();
   flush();
+  // Ask which connector version is deployed. Older ones can't send today's trips back.
+  if (linked()) send({ action: 'ping' }).then(function (r) {
+    sync.version = +r.version || 1;
+    var c = currentClass();
+    if (c) fetchToday(c, true);
+    if (view !== 'settings') render();
+  }, function () {});
 })();
 </script>
 </body>
