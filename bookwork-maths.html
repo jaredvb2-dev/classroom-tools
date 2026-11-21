@@ -32,10 +32,31 @@
   .tp-presets { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 8px; }
   .tp-row { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 6px; }
   .timer-panel button { font-size: 15px; padding: 8px 6px; }
-  @media (max-width: 1600px) { h1 { display: none; } }
+  h1 { display: none; }
   @media (max-width: 1500px) and (min-width: 761px) { header .seg span { display: none; } .practise { max-width: 205px; } }
   header button { font-size: 18px; padding: 8px 14px; }
   #fsBtn { font-size: 24px; padding: 4px 12px; line-height: 1; }
+  #zoomSeg button { min-width: 44px; padding: 8px 10px; font-variant-numeric: tabular-nums; }
+  #zoomSeg #zoomFit { min-width: 64px; font-size: 16px; }
+  #zoomSeg #zoomFit.on { background: #000; color: #fff; }
+  #gridFit { display: flow-root; }
+  body.fitting .wrap { padding-bottom: 8px; }
+  @media (max-width: 1500px) and (min-width: 1001px) {
+    header { gap: 6px; }
+    header button { padding: 8px 10px; }
+    #zoomSeg button { min-width: 36px; padding: 8px 8px; }
+    #zoomSeg #zoomFit { min-width: 50px; }
+    .seg button { min-width: 44px; }
+  }
+  @media (max-width: 1330px) and (min-width: 1001px) {
+    header { gap: 5px; }
+    header button { font-size: 16px; padding: 7px 8px; }
+    .practise { max-width: 170px; font-size: 15px; }
+    .clock { font-size: 19px; padding: 0 2px; }
+    #timerBtn { min-width: 92px; }
+    .seg button { min-width: 38px; }
+    #fsBtn { font-size: 20px; padding: 4px 8px; }
+  }
   button {
     font-family: inherit; font-size: 20px; font-weight: bold; color: #000; background: #fff;
     border: 3px solid #000; border-radius: 6px; padding: 10px 16px; cursor: pointer; touch-action: manipulation;
@@ -287,6 +308,7 @@
     <button class="primary" id="gen">Generate 12 problems</button>
     <button id="revealAll">Reveal all</button>
     <button id="topicBtn">Settings</button>
+    <div class="seg" id="zoomSeg" role="group" aria-label="Question size"><button id="zoomOut" title="Smaller" aria-label="Make questions smaller">−</button><button id="zoomFit" title="Fit the questions to the screen">Fit</button><button id="zoomIn" title="Bigger" aria-label="Make questions bigger">+</button></div>
     <button id="fsBtn" title="Full screen" aria-label="Full screen">⛶</button>
   </header>
 
@@ -2291,6 +2313,72 @@ document.addEventListener('keydown', e => {
 });
 try { const rs = JSON.parse(localStorage.getItem('bookworkRace') || 'null'); if (Array.isArray(rs)) { document.getElementById('raceSecs').value = rs[0]; document.getElementById('raceAns').value = rs[1]; } } catch (e) {}
 document.getElementById('practiseSel').onchange = e => { practise = e.target.value; syncMix(); generate(); };
+
+/* ---------- question size: Fit to screen, or zoom by hand ---------- */
+// The grid sits inside a wrapper so the wrapper's height always shows the zoomed size.
+const gridFit = document.createElement('div');
+gridFit.id = 'gridFit';
+grid.before(gridFit); gridFit.appendChild(grid);
+const ZOOM_MIN = 0.4, ZOOM_MAX = 2, FIT_MIN = 0.5, FIT_MAX = 1.5;
+let zoomMode = 'fit', zoomManual = 1, zoomNow = 1;
+try {
+  const z = localStorage.getItem('bookworkZoom');
+  if (z && z !== 'fit' && +z >= ZOOM_MIN && +z <= ZOOM_MAX) { zoomMode = 'manual'; zoomManual = +z; }
+} catch (e) {}
+function setZoom(z) { zoomNow = z; grid.style.zoom = z; }
+function fitHeight() {
+  const top = gridFit.getBoundingClientRect().top + window.scrollY;
+  return window.innerHeight - top - 10;
+}
+function applyZoom() {
+  const fitting = zoomMode === 'fit' && window.innerWidth > 1000;
+  document.body.classList.toggle('fitting', fitting);
+  if (zoomMode === 'manual') setZoom(zoomManual);
+  else if (window.innerWidth <= 1000) setZoom(1);   // single column: scroll instead of shrinking
+  else {
+    // find the biggest size where every question fits on screen
+    const avail = fitHeight();
+    let lo = FIT_MIN, hi = FIT_MAX;
+    setZoom(hi);
+    if (gridFit.getBoundingClientRect().height > avail) {
+      for (let i = 0; i < 9; i++) {
+        const mid = (lo + hi) / 2;
+        setZoom(mid);
+        if (gridFit.getBoundingClientRect().height <= avail) lo = mid; else hi = mid;
+      }
+      setZoom(Math.floor(lo * 100) / 100);
+    }
+  }
+  const fitBtn = document.getElementById('zoomFit');
+  fitBtn.classList.toggle('on', zoomMode === 'fit');
+  fitBtn.textContent = zoomMode === 'fit' ? 'Fit' : Math.round(zoomNow * 100) + '%';
+  fitBtn.title = zoomMode === 'fit' ? 'Questions are fitted to the screen' : 'Back to fit the screen';
+}
+let zoomQueued = false;
+function queueZoom() {
+  if (zoomQueued) return;
+  zoomQueued = true;
+  requestAnimationFrame(() => { zoomQueued = false; applyZoom(); });
+}
+function stepZoom(d) {
+  zoomManual = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, Math.round((zoomNow + d) * 10) / 10));
+  zoomMode = 'manual';
+  try { localStorage.setItem('bookworkZoom', zoomManual); } catch (e) {}
+  applyZoom();
+}
+document.getElementById('zoomOut').onclick = () => stepZoom(-0.1);
+document.getElementById('zoomIn').onclick = () => stepZoom(0.1);
+document.getElementById('zoomFit').onclick = () => {
+  zoomMode = 'fit';
+  try { localStorage.setItem('bookworkZoom', 'fit'); } catch (e) {}
+  applyZoom();
+};
+// refit when problems change, answers are shown, settings open or the window changes size
+new MutationObserver(queueZoom).observe(grid, { childList: true, subtree: true, attributes: true, attributeFilter: ['class'] });
+new MutationObserver(queueZoom).observe(document.getElementById('topics'), { attributes: true, attributeFilter: ['class'] });
+window.addEventListener('resize', queueZoom);
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(queueZoom);
+
 syncMix();
 renderChips();
 syncControls();
