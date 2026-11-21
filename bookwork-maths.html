@@ -216,6 +216,7 @@
   #pkEditNames { min-height: 260px; font-family: inherit; font-size: 15px; border: 3px solid #000; border-radius: 6px; padding: 6px; resize: vertical; }
   .card.tps-on { box-shadow: 0 0 0 5px var(--p-edge); }
   .controls [data-a="tps"] { margin-left: auto; }
+  body.no-tps .controls [data-a="tps"] { display: none; }
   @media (max-width: 1700px) and (min-width: 1001px) {
     header .seg span { display: none; }
     header .seg button { min-width: 40px; padding: 8px 8px; }
@@ -385,6 +386,7 @@
     </div>
     <div class="opt-row">
       <b>Think-Pair-Share</b>
+      <label class="chk"><input type="checkbox" id="tpsOn" checked> Show TPS buttons</label>
       <label class="chk">Think <select id="tpsThink" class="sel"><option>10</option><option>15</option><option selected>20</option><option>30</option><option>45</option><option>60</option></select> s</label>
       <label class="chk">Pair <select id="tpsPair" class="sel"><option>20</option><option>30</option><option selected>40</option><option>60</option><option>90</option><option>120</option></select> s</label>
       <span class="hint">Tap TPS on a question. The picker chooses who shares.</span>
@@ -1190,7 +1192,7 @@ shapes(L) {
   const flat = [['triangle', 3], ['square', 4], ['rectangle', 4], ['pentagon', 5], ['hexagon', 6], ['octagon', 8]];
   if (L === 1) { const [n, s] = pick(flat.slice(0, 3)); const ask = pick(['sides', 'corners']); return { q: `How many ${ask} does a ${n} have?`, a: N(s), s: [`A ${n} has ${s} straight sides and ${s} corners.`] }; }
   if (L === 2) {
-    if (Math.random() < .6) { const [n, s] = pick(flat.slice(3)); return { q: `How many sides does a ${n} have?`, a: N(s), s: [`A ${n} has ${s} sides and ${s} corners.`] }; }
+    if (Math.random() < .6) { const [n, s] = pick(flat.slice(3)); const an = /^[aeiou]/.test(n) ? 'an' : 'a'; return { q: `How many sides does ${an} ${n} have?`, a: N(s), s: [`${an === 'an' ? 'An' : 'A'} ${n} has ${s} sides and ${s} corners.`] }; }
     const [n, s] = pick(flat); return { q: `Which shape has ${s} sides${n === 'square' || n === 'rectangle' ? ' and 4 square corners' : ''}?`, a: n === 'square' || n === 'rectangle' ? 'A square or a rectangle' : 'A ' + n, s: [`Count the sides of each shape you know.`] };
   }
   const solids = [['cube', 6, 'faces'], ['cube', 8, 'corners'], ['rectangular prism', 6, 'faces'], ['triangular prism', 5, 'faces'], ['square pyramid', 5, 'faces'], ['cylinder', 2, 'flat faces'], ['cone', 1, 'flat face'], ['sphere', 0, 'flat faces']];
@@ -2154,8 +2156,8 @@ const APK_SKILLS = {
     const n = st === 1 ? pick([2, 5, 10]) : R(3, 9), k = st === 1 ? R(2, 4) : R(3, 5);
     return { name: 'Repeated adding', q: `${Array(k).fill(n).join(' + ')}`, a: N(n * k), s: [`That is ${k} groups of ${n}.`, `${k} × ${n} = ${n * k}`] };
   },
-  skipCount(st) {
-    const by = st === 1 ? pick([2, 5, 10]) : st === 2 ? pick([3, 4, 5, 25, 50]) : pick([6, 7, 8, 9, 25, 75]);
+  skipCount(st, step) {
+    const by = step ? +step : st === 1 ? pick([2, 5, 10]) : st === 2 ? pick([2, 5, 10, 25, 50]) : pick([2, 5, 10, 20, 25, 50]);
     const start = by * R(1, st === 1 ? 4 : 6), seq = [0, 1, 2, 3].map(i => start + i * by);
     return { name: 'Skip counting', q: `What comes next? ${seq.map(N).join(', ')}, ${Q}`, a: N(start + 4 * by), s: [`The numbers go up by ${by} each time.`, `${N(seq[3])} + ${by} = ${N(start + 4 * by)}`] };
   },
@@ -2237,10 +2239,10 @@ const APK_SKILLS = {
     return { name: 'Fractions and decimals', q: `Write ${F(n, d)} as a decimal.`, a: v, s: [d === 10 || d === 100 ? `${F(n, d)} is ${n} ${d === 10 ? 'tenth' : 'hundredth'}${n > 1 ? 's' : ''}.` : `Make the denominator 10 or 100: ${F(n, d)} = ${F(n * 100 / d, 100)}.`, `${F(n, d)} = ${v}`] };
   },
   decPV(st) {
-    if (st <= 2) { const w = R(1, 9), t = R(1, 9); return { name: 'Tenths', q: `What is the value of the ${t} in ${w}.${t}?`, a: `${t} tenths (${F(t, 10)})`, s: [`The first place after the decimal point is tenths.`, `So the ${t} is worth ${F(t, 10)}.`] }; }
+    if (st <= 2) { const w = R(1, 9), t = R(1, 9); return { name: 'Tenths', q: `What is the value of the ${t} in ${w}.${t}?`, a: `${t} tenth${t > 1 ? 's' : ''} (${F(t, 10)})`, s: [`The first place after the decimal point is tenths.`, `So the ${t} is worth ${F(t, 10)}.`] }; }
     const w = R(1, 9), t = R(1, 9); let h; do { h = R(1, 9); } while (h === t);
     const which = pick(['t', 'h']), dgt = which === 't' ? t : h;
-    return { name: 'Decimal place value', q: `What is the value of the ${dgt} in ${w}.${t}${h}?`, a: which === 't' ? `${t} tenths (${F(t, 10)})` : `${h} hundredths (${F(h, 100)})`, s: [`After the decimal point: tenths, then hundredths.`, which === 't' ? `The ${t} is in the tenths place.` : `The ${h} is in the hundredths place.`] };
+    return { name: 'Decimal place value', q: `What is the value of the ${dgt} in ${w}.${t}${h}?`, a: which === 't' ? `${t} tenth${t > 1 ? 's' : ''} (${F(t, 10)})` : `${h} hundredth${h > 1 ? 's' : ''} (${F(h, 100)})`, s: [`After the decimal point: tenths, then hundredths.`, which === 't' ? `The ${t} is in the tenths place.` : `The ${h} is in the hundredths place.`] };
   },
   pctFacts() {
     const list = [[50, '1/2'], [25, '1/4'], [75, '3/4'], [10, '1/10'], [20, '1/5']];
@@ -2251,7 +2253,7 @@ const APK_SKILLS = {
   clockFacts(st) {
     const h = R(1, 11);
     const list = st === 1
-      ? [[`How many minutes are in one hour?`, '60'], [`What time is half past ${h}? Write it like a digital clock.`, `${h}:30`], [`What time is ${h} o'clock? Write it like a digital clock.`, `${h}:00`], [`Which hand on a clock is longer, the hour hand or the minute hand?`, 'the minute hand']]
+      ? [[`How many minutes are in one hour?`, '60'], [`What is half of 60?`, '30'], [`What is the biggest number on a clock face?`, '12'], [`Which hand on a clock is longer, the hour hand or the minute hand?`, 'the minute hand'], [`On a clock, what number comes after 12?`, '1']]
       : st === 2
         ? [[`How many minutes are in a quarter of an hour?`, '15'], [`How many hours are in one day?`, '24'], [`What time is quarter past ${h}? Write it like a digital clock.`, `${h}:15`], [`What time is quarter to ${h + 1}? Write it like a digital clock.`, `${h}:45`], [`How many minutes are in half an hour?`, '30']]
         : [[`Write ${h} pm in 24-hour time.`, `${h + 12}:00`], [`How many minutes are in ${h} hours?`, N(h * 60)], [`How many seconds are in one minute?`, '60'], [`Write ${h + 12}:30 in 12-hour time.`, `${h}:30 pm`], [`How many days are in a leap year?`, '366']];
@@ -2312,9 +2314,110 @@ const APK_SKILLS = {
     const n = st === 3 ? R(4, 12) : R(2, 6);
     return { name: 'Square numbers', q: `${n} × ${n}`, a: N(n * n), s: [`A square number is a number times itself.`, `${n} × ${n} = ${n * n}`] };
   },
-  arrayRect(st) {
-    const r = R(2, st === 1 ? 5 : 9), c = R(2, st === 1 ? 5 : 9);
-    return { name: 'Arrays', q: `Squares are arranged in ${r} rows of ${c}. How many squares altogether?`, a: N(r * c), s: [`Rows × columns.`, `${r} × ${c} = ${r * c}`] };
+  moreLess(st, dir) {
+    const n = st === 1 ? R(12, 88) : R(120, 980), d = pick(st === 1 ? [1, 10] : [10, 100]), more = dir === 'more' ? true : dir === 'less' ? false : Math.random() < .5;
+    return { name: (more ? 'More' : 'Less'), q: `What is ${d} ${more ? 'more' : 'less'} than ${N(n)}?`, a: N(more ? n + d : n - d), s: [`${d === 1 ? 'The ones digit' : d === 10 ? 'The tens digit' : 'The hundreds digit'} changes by 1.`, `${N(n)} ${more ? '+' : '−'} ${d} = ${N(more ? n + d : n - d)}`] };
+  },
+  countBack(st) {
+    const start = st === 1 ? R(15, 60) : R(105, 500), seq = [0, 1, 2, 3].map(i => start - i);
+    return { name: 'Counting back', q: `What comes next? ${seq.map(N).join(', ')}, ${Q}`, a: N(start - 4), s: [`The numbers go down by 1 each time.`, `${N(start - 4)}`] };
+  },
+  beforeAfter(st) {
+    const n = st === 1 ? R(2, 9) * 10 + pick([0, 9]) : R(11, 99) * 10 + pick([0, 9]), after = Math.random() < .5;
+    return { name: 'Number order', q: `What number comes ${after ? 'after' : 'before'} ${N(n)}?`, a: N(after ? n + 1 : n - 1), s: [`Count ${after ? 'on' : 'back'} by one.`, `${N(after ? n + 1 : n - 1)}`] };
+  },
+  between(st) {
+    const a = st === 1 ? R(1, 18) : R(20, 98);
+    return { name: 'Number order', q: `What number is between ${a} and ${a + 2}?`, a: N(a + 1), s: [`Count on one from ${a}.`, `${a}, ${a + 1}, ${a + 2}`] };
+  },
+  tensCount(st) {
+    const t = R(2, 9), unit = st === 1 ? 10 : 100;
+    return { name: 'Counting in ' + (unit === 10 ? 'tens' : 'hundreds'), q: `How much is ${t} ${unit === 10 ? 'tens' : 'hundreds'}?`, a: N(t * unit), s: [`Count in ${unit}s ${t} times.`, `${t} × ${unit} = ${N(t * unit)}`] };
+  },
+  tensDigit(st) {
+    let n; do { n = st === 1 ? R(21, 98) : R(120, 987); } while (n % 10 === Math.floor(n / 10) % 10);
+    return { name: 'Tens and ones', q: `Which digit is in the tens place in ${N(n)}?`, a: String(Math.floor(n / 10) % 10), s: [`The tens place is second from the right.`, `${Math.floor(n / 10) % 10}`] };
+  },
+  pairs() {
+    const n = R(5, 16);
+    return { name: 'Making pairs', q: `Can ${n} counters be put into pairs with none left over?`, a: n % 2 ? 'no, 1 is left over' : `yes, ${n / 2} pairs`, s: [`Group them in twos.`, n % 2 ? `${(n - 1) / 2} pairs and 1 left over.` : `${n / 2} pairs exactly.`] };
+  },
+  addTens(st) {
+    const u = st === 1 ? 10 : 100, a = R(1, 6) * u, b = R(1, 3) * u;
+    return { name: st === 1 ? 'Adding tens' : 'Adding hundreds', q: `${N(a)} + ${N(b)}`, a: N(a + b), s: [`${a / u} ${u === 10 ? 'tens' : 'hundreds'} + ${b / u} ${u === 10 ? 'tens' : 'hundreds'} = ${(a + b) / u} ${u === 10 ? 'tens' : 'hundreds'}`, `${N(a + b)}`] };
+  },
+  addFactsBasic() {
+    const a = R(4, 9), b = R(11 - a, 9);
+    return { name: 'Addition facts', q: `${a} + ${b}`, a: N(a + b), s: [`Make 10 first: ${a} + ${10 - a} = 10, then add ${b - (10 - a)}.`, `${a} + ${b} = ${a + b}`] };
+  },
+  subFactsBasic() {
+    const b = R(4, 9), a = R(11, b + 9);
+    return { name: 'Subtraction facts', q: `${a} − ${b}`, a: N(a - b), s: [`Think of the addition: ${b} + ? = ${a}.`, `${a} − ${b} = ${a - b}`] };
+  },
+  regroup() {
+    const o = R(11, 19);
+    return { name: 'Regrouping', q: `${o} ones = ${Q} ten and ${Q} ones`, a: `1 ten and ${o - 10} ones`, s: [`10 ones make 1 ten.`, `${o} = 10 + ${o - 10}`] };
+  },
+  trade() {
+    const t = R(3, 9), o = R(0, 8);
+    return { name: 'Trading', q: `${t} tens and ${o} ones is the same as ${t - 1} tens and ${Q} ones.`, a: N(o + 10), s: [`Trade 1 ten for 10 ones.`, `${o} + 10 = ${o + 10} ones`] };
+  },
+  tenthsFacts() {
+    const t = R(3, 9), [q, a, st1] = pick([
+      ['How many tenths make 1 whole?', '10', 'Ten equal parts make a whole.'],
+      [`Write ${t} tenths as a fraction.`, F(t, 10), 'Tenths have a denominator of 10.'],
+      [`Which is bigger, ${t} tenths or ${t - 1} tenths?`, `${t} tenths`, 'Same size parts, so more parts is bigger.'],
+      [`A pizza is cut into 10 equal slices. You eat ${t}. What fraction did you eat?`, F(t, 10), `${t} out of 10 equal slices.`]]);
+    return { name: 'Tenths', q, a, s: [st1, a] };
+  },
+  bonds60() {
+    const a = 5 * R(1, 11);
+    return { name: 'Minutes to the hour', q: `${a} + ${Q} = 60`, a: String(60 - a), s: [`Count on in 5s from ${a} to 60.`, `${a} + ${60 - a} = 60`] };
+  },
+  polySides(st) {
+    const list = st <= 2 ? [['triangle', 3], ['square', 4], ['pentagon', 5], ['hexagon', 6], ['octagon', 8]] : [['pentagon', 5], ['hexagon', 6], ['heptagon', 7], ['octagon', 8], ['decagon', 10], ['dodecagon', 12]];
+    const [n, k] = pick(list);
+    return { name: 'Shape names', q: `How many sides does ${/^[aeiou]/.test(n) ? 'an' : 'a'} ${n} have?`, a: String(k), s: [`The start of the name tells you: ${n}.`, `${k} sides`] };
+  },
+  shapeWords(st) {
+    const list = st === 1
+      ? [['Is the edge of a circle straight or curved?', 'curved'], ['Which can roll, a ball or a box?', 'a ball'], ['What do we call the point where two sides of a shape meet?', 'a corner'], ['Is a ruler’s edge straight or curved?', 'straight']]
+      : st === 2
+        ? [['What is another word for a corner of a shape?', 'vertex'], ['What do we call a flat surface of a 3D object?', 'a face'], ['What do we call the line where two faces of a 3D object meet?', 'an edge'], ['Is a square a 2D shape or a 3D object?', '2D shape'], ['A shape with 4 sides is called a …', 'quadrilateral']]
+        : [['What do we call lines that never meet, like train tracks?', 'parallel lines'], ['What do we call two lines that meet at a right angle?', 'perpendicular'], ['What does “regular” mean for a shape?', 'all sides and angles are equal'], ['What is the plural of vertex?', 'vertices'], ['A triangle with all sides equal is called …', 'equilateral']];
+    const [q, a] = pick(list);
+    return { name: 'Shape words', q, a, s: [`Use the shape vocabulary.`, a] };
+  },
+  moreFewer() {
+    const c = shuffle(['red', 'blue', 'green', 'yellow']).slice(0, 2); let a, b; do { a = R(1, 9); b = R(1, 9); } while (a === b);
+    if (Math.random() < .5) return { name: 'More or fewer', q: `A bag holds ${a} ${c[0]} and ${b} ${c[1]} blocks. Are there more ${c[0]} or more ${c[1]} blocks?`, a: a > b ? c[0] : c[1], s: [`Compare ${a} and ${b}.`, `More ${a > b ? c[0] : c[1]}.`] };
+    return { name: 'Counting all', q: `A bag holds ${a} ${c[0]} and ${b} ${c[1]} blocks. How many blocks altogether?`, a: N(a + b), s: [`Add the two groups.`, `${a} + ${b} = ${a + b}`] };
+  },
+  diceFacts() {
+    const [q, a, h] = pick([['How many faces does a standard dice have?', '6', 'Count the faces: 1 to 6.'], ['What is the biggest number on a standard dice?', '6', 'The faces show 1 to 6.'], ['How many even numbers are on a standard dice?', '3 (2, 4 and 6)', 'List them: 2, 4, 6.'], ['How many sides does a coin have that it can land on?', '2', 'Heads or tails.']]);
+    return { name: 'Dice and coins', q, a, s: [h, a] };
+  },
+  angleFactsBasic() {
+    const [q, a] = pick([['How many degrees are in a right angle?', '90°'], ['How many degrees are on a straight line?', '180°'], ['How many degrees are in a full turn?', '360°']]);
+    return { name: 'Angle facts', q, a, s: [`Right angle 90°, straight line 180°, full turn 360°.`, a] };
+  },
+  turns() {
+    const [q, a, h] = pick([['How many right angles make a full turn?', '4', 'A full turn is 4 quarter turns.'], ['How many right angles make a half turn?', '2', 'A half turn is 2 quarter turns.'], ['A quarter turn is the same as how many degrees?', '90°', '360° ÷ 4 = 90°'], ['A half turn is the same as how many degrees?', '180°', '360° ÷ 2 = 180°']]);
+    return { name: 'Turns', q, a, s: [h, a] };
+  },
+  alphaOrder() {
+    const i = R(0, 5), k = R(1, 3), L = 'ABCDEFGHI';
+    return { name: 'Letter order', q: `What letter is ${k} after ${L[i]}?`, a: L[i + k], s: [`Count on through the alphabet.`, L.slice(i, i + k + 1).split('').join(', ')] };
+  },
+  rectPerim(st) {
+    const l = st <= 2 ? R(4, 9) : R(6, 18); let w; do { w = st <= 2 ? R(2, 6) : R(3, 12); } while (w >= l);
+    const W = 300, H = Math.round(300 * w / l), X = 20, Y = 40;
+    const ink = 'font-family="Montserrat, sans-serif" font-size="24" font-weight="700"';
+    const svg = SVG(X + W + 110, H + 60, `<rect x="${X}" y="${Y}" width="${W}" height="${H}" fill="#fff" stroke="#000" stroke-width="4"/>` +
+      `<text x="${X + W / 2}" y="${Y - 12}" text-anchor="middle" ${ink}>${l} cm</text>` +
+      `<text x="${X + W + 12}" y="${Y + H / 2 + 8}" ${ink}>${w} cm</text>`, 'shape-dg');
+    return { name: 'Perimeter of a rectangle', q: `What is the perimeter of this rectangle?${svg}`, a: `${2 * (l + w)} cm`,
+      s: [`Perimeter is the distance all the way around. Add all four sides.`, `${l} + ${w} + ${l} + ${w} = ${2 * (l + w)} cm`] };
   },
   rectArea() {
     const r = R(2, 9), c = R(2, 9);
@@ -2332,7 +2435,7 @@ const APK_SKILLS = {
     return { name: 'Problem words', q: `A word problem says “${w}”. Which operation does that usually mean?`, a: op, s: [`Think about what is happening: joining, taking away, grouping or sharing.`, op] };
   },
   tally(st) {
-    if (st === 1) { const b = R(1, 3), x = R(0, 4); return { name: 'Tally marks', q: `A tally has ${b} bundle${b > 1 ? 's' : ''} of 5 and ${x} more mark${x === 1 ? '' : 's'}. How many is that?`, a: N(5 * b + x), s: [`Count the bundles by 5s, then count on.`, `${5 * b} + ${x} = ${5 * b + x}`] }; }
+    if (st === 1) { const b = R(1, 3), x = R(1, 4); return { name: 'Tally marks', q: `A tally has ${b} bundle${b > 1 ? 's' : ''} of 5 and ${x} more mark${x === 1 ? '' : 's'}. How many is that?`, a: N(5 * b + x), s: [`Count the bundles by 5s, then count on.`, `${5 * b} + ${x} = ${5 * b + x}`] }; }
     const cats = shuffle(['Red', 'Blue', 'Green', 'Yellow']).slice(0, 3), v = cats.map(() => R(3, st === 2 ? 20 : 60));
     const [i, j] = v[0] === v[1] ? [0, 2] : [0, 1];
     if (v[i] === v[j]) v[j]++;
@@ -2360,57 +2463,73 @@ const APK_SKILLS = {
   }
 };
 
-// The skills each topic relies on (same topic ids in every stage; the stage sets the difficulty).
+// What each topic builds on. Only skills that come BEFORE the topic, never the topic itself.
+// 'skill' uses the current stage, 'skill@2' a fixed stage, 'skill:5' passes a value (e.g. skip count by 5),
+// 'gen:2:perim:1' uses a real question (with its diagram) from another topic, at that stage and level.
+// A map can be split by stage with { 1: [...], 2: [...], 3: [...] }.
 const APK_MAP = {
-  add: ['bonds', 'doubles', 'skipCount', 'placeValue'],
-  sub: ['bonds', 'addFacts', 'inverse', 'placeValue'],
-  patterns: ['skipCount', 'addFacts', 'subFacts', 'oddEven'],
-  pv: ['expanded', 'compare', 'skipCount', 'mult10'],
-  compare: ['placeValue', 'expanded', 'skipCount'],
-  nline: ['skipCount', 'compare', 'halfway', 'addFacts'],
-  oddeven: ['skipCount', 'doubles', 'halves'],
-  groups: ['skipCount', 'doubles', 'repeatAdd'],
-  halves: ['halves', 'divFacts', 'doubles'],
-  money: ['moneyFacts', 'addFacts', 'skipCount', 'subFacts'],
-  time: ['clockFacts', 'clockFacts', 'skipCount'],
-  measure: ['unitFacts', 'compare', 'addFacts'],
-  shapes: ['shapeFacts', 'shapeFacts', 'compare'],
-  shapes2: ['shapeFacts', 'shapeFacts', 'angleFacts'],
-  shapes3: ['shapeFacts', 'shapeFacts', 'angleFacts'],
-  wp: ['opWords', 'addFacts', 'subFacts', 'timesFacts'],
-  data: ['tally', 'compare', 'addFacts', 'subFacts'],
-  chance: ['chanceWords', 'chanceWords', 'compare'],
-  prob: ['chanceWords', 'fracDec', 'equivFrac', 'pctFacts'],
-  mult: ['repeatAdd', 'skipCount', 'doubles', 'timesFacts'],
-  div: ['timesFacts', 'inverse', 'halves', 'subFacts'],
-  frac: ['halfFrac', 'divFacts', 'timesFacts', 'equivFrac'],
-  decs: ['fracDec', 'decPV', 'placeValue', 'mult10'],
-  round: ['placeValue', 'halfway', 'compare', 'skipCount'],
-  func: ['inverse', 'timesFacts', 'addFacts', 'subFacts'],
-  area: ['timesFacts', 'arrayRect', 'skipCount', 'squareNums'],
-  perim: ['add3', 'doubles', 'addFacts', 'shapeFacts'],
-  vol: ['rectArea', 'timesFacts', 'arrayRect', 'squareNums'],
-  units: ['mult10', 'unitFacts', 'placeValue', 'mult10'],
-  symmetry: ['symLetters', 'shapeFacts', 'halves'],
-  gridref: ['compass', 'gridWords', 'compare'],
-  coords: ['negNumbers', 'gridWords', 'compare'],
-  maps: ['compass', 'timesFacts', 'mult10', 'unitFacts'],
-  angles: ['angleFacts', 'angleFacts', 'subFacts', 'addFacts'],
-  decmult: ['timesFacts', 'mult10', 'decPV', 'fracDec'],
-  pct: ['fracDec', 'pctFacts', 'mult10', 'halfFrac'],
-  factors: ['timesFacts', 'divFacts', 'divisibility', 'oddEven'],
-  ops: ['timesFacts', 'addFacts', 'subFacts', 'divFacts'],
-  halfway: ['halfway', 'skipCount', 'compare', 'negNumbers']
+  add: { 1: ['moreLess:more', 'bonds', 'gen:1:pv:1', 'beforeAfter'], 2: ['addFactsBasic', 'regroup', 'placeValue', 'addTens'], 3: ['addFactsBasic', 'regroup', 'decPV', 'gen:2:add:1'] },
+  sub: { 1: ['moreLess:less', 'bonds', 'gen:1:pv:1', 'countBack'], 2: ['subFactsBasic', 'trade', 'placeValue', 'bonds'], 3: ['subFactsBasic', 'trade', 'decPV', 'gen:2:sub:1'] },
+  patterns: { 1: ['beforeAfter', 'moreLess', 'skipCount:10', 'countBack'], 2: ['addFacts', 'subFacts', 'skipCount@1', 'oddEven'] },
+  pv: { 1: ['skipCount:10', 'tensCount', 'beforeAfter'], 2: ['gen:1:pv:3', 'tensCount', 'moreLess@1', 'compare@1'] },
+  compare: { 1: ['gen:1:pv:1', 'tensDigit', 'beforeAfter'] },
+  nline: { 1: ['skipCount', 'beforeAfter', 'between'], 2: ['skipCount', 'halfway', 'gen:1:nline:3', 'tenthsFacts'] },
+  oddeven: { 1: ['skipCount:2', 'doubles', 'pairs'] },
+  groups: { 1: ['skipCount', 'repeatAdd', 'doubles', 'skipCount:5'] },
+  halves: { 1: ['divFacts', 'doubles', 'skipCount:2'] },
+  money: { 1: ['skipCount', 'addTens', 'compare', 'addFacts'], 2: ['moneyFacts@1', 'bonds', 'addTens', 'skipCount:5'] },
+  time: { 1: ['skipCount:5', 'clockFacts', 'clockFacts'], 2: ['clockFacts@1', 'skipCount:5', 'bonds60', 'clockFacts'], 3: ['clockFacts', 'bonds60', 'gen:2:time:2', 'addFacts'] },
+  measure: { 1: ['compare', 'addFacts', 'subFacts', 'unitFacts'] },
+  shapes: { 1: ['shapeWords', 'shapeWords', 'shapeWords', 'shapeWords'] },
+  shapes2: { 2: ['gen:1:shapes:2', 'shapeWords', 'angleFacts', 'polySides'] },
+  shapes3: { 3: ['gen:2:shapes2:2', 'gen:2:shapes2:1', 'shapeWords', 'angleFactsBasic'] },
+  wp: { 1: ['opWords', 'addFacts', 'subFacts', 'bonds'], 2: ['opWords', 'addFacts', 'subFacts', 'timesFacts'], 3: ['opWords', 'timesFacts', 'addFactsBasic', 'gen:3:mult:1'] },
+  data: { 1: ['tally', 'compare', 'add3', 'subFacts'], 2: ['skipCount', 'compare', 'add3', 'subFacts'], 3: ['skipCount', 'compare', 'subFacts', 'add3'] },
+  chance: { 1: ['moreFewer', 'moreFewer', 'compare'], 2: ['gen:1:chance:2', 'moreFewer', 'diceFacts'] },
+  prob: { 3: ['equivFrac', 'fracDec', 'pctFacts', 'gen:2:chance:1'] },
+  mult: { 2: ['skipCount', 'repeatAdd', 'doubles', 'mult10'], 3: ['timesFacts', 'mult10', 'expanded', 'gen:2:mult:3'] },
+  div: { 2: ['timesFacts', 'skipCount', 'subFacts', 'halves'], 3: ['timesFacts', 'divFacts', 'mult10', 'subFacts'] },
+  frac: { 2: ['gen:1:halves:2', 'divFacts', 'timesFacts', 'halves'], 3: ['equivFrac', 'timesFacts', 'halfFrac', 'gen:2:frac:2'] },
+  decs: { 2: ['tenthsFacts', 'placeValue', 'subFacts', 'tenthsFacts'] },
+  round: { 2: ['placeValue', 'halfway', 'compare', 'skipCount'], 3: ['placeValue', 'decPV', 'halfway', 'gen:2:round:2'] },
+  func: { 2: ['timesFacts', 'addFacts', 'inverse', 'subFacts'], 3: ['inverse', 'timesFacts', 'gen:2:func:2', 'subFacts'] },
+  area: { 2: ['timesFacts', 'timesFacts', 'rectPerim', 'skipCount'], 3: ['timesFacts', 'timesFacts', 'rectPerim', 'gen:3:mult:1'] },
+  perim: { 2: ['add3', 'doubles', 'polySides', 'timesFacts'], 3: ['add3', 'doubles', 'polySides', 'timesFacts'] },
+  vol: { 3: ['rectArea', 'timesFacts', 'divFacts', 'gen:3:mult:1'] },
+  units: { 2: ['mult10', 'unitFacts@1', 'placeValue', 'mult10'], 3: ['mult10', 'unitFacts@2', 'decPV', 'mult10'] },
+  symmetry: { 2: ['gen:1:halves:2', 'gen:1:shapes:2', 'shapeWords', 'polySides'], 3: ['turns', 'polySides', 'shapeWords', 'compass'] },
+  gridref: { 2: ['compass', 'alphaOrder', 'gridWords', 'compare'] },
+  coords: { 3: ['gen:2:gridref:1', 'negNumbers', 'gen:2:nline:1', 'compass'] },
+  maps: { 3: ['compass', 'timesFacts', 'unitFacts@2', 'gen:2:gridref:2'] },
+  angles: { 3: ['angleFactsBasic', 'turns', 'subFacts', 'compass'] },
+  decmult: { 3: ['timesFacts', 'mult10', 'decPV', 'gen:3:mult:1'] },
+  pct: { 3: ['pctFacts', 'halfFrac', 'mult10', 'halves'] },
+  factors: { 3: ['timesFacts', 'skipCount', 'divFacts', 'oddEven'] },
+  ops: { 3: ['timesFacts', 'divFacts', 'addFacts', 'subFacts'] },
+  halfway: { 3: ['skipCount', 'halves', 'gen:2:nline:2', 'compare'] }
 };
 const APK_COUNT = 4;
 
-function apkProblem(skill, topicId, avoid) {
+function apkMake(entry) {
+  if (entry.startsWith('gen:')) {
+    const [, st, topic, lv] = entry.split(':'), set = STAGES[+st];
+    return Object.assign(set.GEN[topic](+lv), { name: set.TOPICS.find(t => t.id === topic).name });
+  }
+  const [head, arg] = entry.split(':'), [skill, at] = head.split('@');
+  return APK_SKILLS[skill](at ? +at : stage, arg);
+}
+function apkProblem(entry, topicId, avoid) {
   let p, tries = 0;
-  do { p = APK_SKILLS[skill](stage); tries++; } while (avoid.has(p.q) && tries < 20);
-  return Object.assign(p, { level: 1, topicId, apk: true, topicName: p.name, regen: () => apkProblem(skill, topicId, new Set(problems.map(x => x.q))) });
+  do { p = apkMake(entry); tries++; } while (avoid.has(p.q) && tries < 20);
+  return Object.assign(p, { level: 1, topicId, apk: true, topicName: p.name, regen: () => apkProblem(entry, topicId, new Set(problems.map(x => x.q))) });
+}
+function apkList(topicId) {
+  const m = APK_MAP[topicId];
+  if (!m) return ['addFacts', 'subFacts', 'timesFacts', 'divFacts'];
+  return m[stage] || m[Object.keys(m)[0]];
 }
 function generateAPK() {
-  const skills = APK_MAP[practise] || ['addFacts', 'subFacts', 'timesFacts', 'divFacts'];
+  const skills = apkList(practise);
   const order = shuffle(skills), used = new Set();
   problems = Array.from({ length: APK_COUNT }, (_, i) => { const p = apkProblem(order[i % order.length], practise, used); used.add(p.q); return p; });
 }
@@ -2843,6 +2962,9 @@ $pk('pickerTab').onclick = () => { pk.open = true; pkSave(); pkRender(); queueZo
 /* ---------- think-pair-share ---------- */
 let tps = null;
 try { const t = JSON.parse(localStorage.getItem('bookworkTPS') || 'null'); if (t) { $pk('tpsThink').value = t[0]; $pk('tpsPair').value = t[1]; } } catch (e) {}
+function tpsShow(on) { document.body.classList.toggle('no-tps', !on); $pk('tpsOn').checked = on; if (!on) tpsStop(); }
+try { tpsShow(localStorage.getItem('bookworkTPSon') !== '0'); } catch (e) {}
+$pk('tpsOn').onchange = e => { tpsShow(e.target.checked); try { localStorage.setItem('bookworkTPSon', e.target.checked ? '1' : '0'); } catch (err) {} };
 ['tpsThink', 'tpsPair'].forEach(id => $pk(id).onchange = () => { try { localStorage.setItem('bookworkTPS', JSON.stringify([+$pk('tpsThink').value, +$pk('tpsPair').value])); } catch (e) {} });
 const TPS_PHASES = [
   { key: 'think', label: 'Think', hint: 'No talking. Think on your own.' },
